@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>بيتالي | Petali</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&family=Playfair+Display:ital,wght@1,600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{--mv:#A86B9E;--mvl:#E8D5E5;--pk:#F4DDE5;--pe:#F7E1D7;--bg:#FFF9F4;--card:#FFFCFA;--tx:#554852;--tx2:#9A8C96;--gr:#8DB39A}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg) radial-gradient(#EFDDE9 1.2px,transparent 1.4px) 0 0/22px 22px;color:var(--tx);font-family:Tajawal,system-ui,sans-serif;font-size:16px;line-height:1.6;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:inherit;text-decoration:none}
+.brand{font-family:'Playfair Display',serif;font-style:italic;color:var(--mv)}
+header{position:sticky;top:0;z-index:5;background:rgba(255,252,250,.94);backdrop-filter:blur(6px);border-bottom:2px dashed var(--mvl);padding:8px 14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+header .logo{display:flex;align-items:center;gap:8px;font-size:1.3rem;font-weight:700}header img{height:38px}
+nav{display:flex;gap:6px;flex:1;overflow-x:auto}
+nav a{padding:6px 14px;border-radius:99px;white-space:nowrap;font-size:.95rem}nav a.on{background:var(--mvl);color:var(--mv);font-weight:700}
+.cartbtn{position:relative;background:var(--mv);color:#fff;border-radius:99px;padding:6px 14px;font-weight:700}
+.cartbtn i{font-style:normal;background:#fff;color:var(--mv);border-radius:99px;padding:0 7px;margin-inline-start:6px;font-size:.85rem}
+main{max-width:980px;margin:0 auto;padding:18px 14px 60px}
+h1{font-size:1.9rem;line-height:1.3}h2{font-size:1.35rem;margin:26px 0 12px}h3{font-size:1.05rem}
+.sub{color:var(--tx2);font-size:.88rem}.center{text-align:center}
+.card{background:var(--card);border:1.5px solid var(--mvl);outline:1px solid #F6EAF2;outline-offset:4px;border-radius:22px;padding:16px;margin:6px 0 14px}
+.scal{position:relative;padding-top:22px}
+.scal::before{content:'';position:absolute;top:0;inset-inline:14px;height:12px;background:radial-gradient(circle at 10px 0,transparent 7.5px,var(--mvl) 8px 9.5px,transparent 10px) repeat-x;background-size:20px 12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.grow{flex:1;min-width:0}
+.btn{background:var(--mv);color:#fff;border:0;border-radius:14px;padding:11px 18px;font-weight:700;cursor:pointer}
+.btn.soft{background:var(--mvl);color:var(--tx)}.btn:disabled{opacity:.5}.btn.sm{padding:6px 12px;font-size:.9rem}
+input,select,textarea{width:100%;background:#fff;border:1.5px solid var(--mvl);border-radius:14px;padding:10px 12px}
+input:focus,select:focus,.btn:focus-visible{outline:2px solid var(--mv);outline-offset:2px}
+label{display:block;font-size:.88rem;color:var(--tx2);margin:10px 0 4px}
+.hero{display:grid;grid-template-columns:1.3fr 1fr;gap:20px;align-items:center;margin-top:10px}
+.arch{width:min(250px,100%);margin:auto;aspect-ratio:3/4;border-radius:999px 999px 26px 26px;border:2px solid var(--mvl);outline:1px solid #F3E2EE;outline-offset:6px;background:repeating-linear-gradient(90deg,#FCF0F4 0 14px,#F8E7EE 14px 28px);display:grid;place-items:center;text-align:center;padding:30px 14px 18px}
+.arch img{width:78%}.arch span{font-size:.9rem;color:var(--mv)}
+.stitch{height:10px;margin:14px 0;opacity:.55;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='10'%3E%3Cellipse cx='11' cy='5' rx='8' ry='3.2' fill='none' stroke='%23A86B9E' stroke-width='1.6'/%3E%3C/svg%3E") repeat-x center}
+.pimg{aspect-ratio:1;border-radius:16px;background:var(--pk) center/cover;display:grid;place-items:center;font-size:2.2rem;margin-bottom:10px}
+.tag{display:inline-block;background:var(--pe);border-radius:99px;padding:1px 10px;font-size:.78rem;margin:2px 2px 2px 0}
+.tag.g{background:#DDEBDF}
+.price{font-weight:700;color:var(--mv);font-size:1.1rem}.old{text-decoration:line-through;color:var(--tx2);font-size:.9rem}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+.steps .card b{display:block;font-size:1.6rem;color:var(--mv)}
+.line{display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:center;padding:12px 0;border-top:1px dashed var(--mvl)}.line:first-child{border-top:0}
+.line .pimg{margin:0;font-size:1.4rem}
+.qty{display:flex;align-items:center;gap:6px}.qty button{width:30px;height:30px;border-radius:99px;border:1.5px solid var(--mvl);background:#fff;cursor:pointer}
+.tot{display:flex;justify-content:space-between;padding:4px 0}.tot.big{font-size:1.2rem;font-weight:700;color:var(--mv);border-top:2px dashed var(--mvl);margin-top:6px;padding-top:10px}
+.soft-note{background:var(--pk);border-radius:16px;padding:12px 14px;font-size:.92rem;margin:10px 0}
+.dis{opacity:.5;pointer-events:none;border:1.5px dashed var(--mvl);border-radius:14px;padding:10px 12px;display:flex;gap:8px;align-items:center}
+.inv{max-width:430px;margin:0 auto;background:#fff;border:1.5px solid var(--mvl);outline:1px solid #F3E2EE;outline-offset:5px;border-radius:22px;padding:26px 22px 20px;position:relative}
+.inv::before{content:'';position:absolute;top:0;inset-inline:18px;height:12px;background:radial-gradient(circle at 10px 0,transparent 7.5px,var(--mvl) 8px 9.5px,transparent 10px) repeat-x;background-size:20px 12px}
+.inv .hd{display:flex;align-items:center;gap:12px;justify-content:center}.inv .hd img{height:58px}
+.inv .pill{display:block;width:max-content;margin:14px auto 4px;border:2px dashed var(--mv);border-radius:99px;padding:4px 22px;font-size:1.05rem}
+.inv .kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;background:var(--bg);border-radius:14px;padding:10px 14px;margin:14px 0;font-size:.92rem}.inv .kv span{color:var(--tx2)}
+.inv table{width:100%;border-collapse:collapse;font-size:.92rem}.inv th{color:var(--tx2);font-weight:500;font-size:.8rem;text-align:start;padding:4px 0;border-bottom:1.5px solid var(--mvl)}
+.inv td{padding:9px 0;border-bottom:1px dashed var(--mvl);vertical-align:top}.inv td.n{text-align:end;white-space:nowrap}
+.inv .nt{font-size:.85rem;background:var(--pk);border-radius:14px;padding:10px 12px;margin-top:14px}.inv .nt p+p{margin-top:6px}
+.steps2{display:flex;justify-content:space-between;margin:14px 0 6px}.steps2 div{flex:1;text-align:center;font-size:.8rem;color:var(--tx2)}
+.steps2 i{display:block;width:26px;height:26px;border-radius:99px;background:var(--mvl);margin:0 auto 4px;line-height:26px;font-style:normal;color:#fff}.steps2 .on{color:var(--mv);font-weight:700}.steps2 .on i{background:var(--mv)}
+.bar{height:8px;background:var(--mvl);border-radius:9px;overflow:hidden}.bar i{display:block;height:100%;background:var(--mv)}
+.err{color:#C9776B;min-height:1.3em;font-size:.9rem;margin-top:6px}
+#toast{position:fixed;bottom:24px;inset-inline:0;margin:auto;width:max-content;max-width:90%;background:var(--tx);color:#fff;padding:10px 18px;border-radius:14px;opacity:0;pointer-events:none;transition:.2s;z-index:9}#toast.show{opacity:1}
+footer{text-align:center;padding:10px 14px 40px}footer img{height:56px;opacity:.3;display:block;margin:0 auto 6px}
+.invwrap{padding:14px;background:var(--bg)}
+.modal{position:fixed;inset:0;background:rgba(85,72,82,.45);display:grid;place-items:center;z-index:20;padding:16px}.modal .box{background:var(--card);border-radius:24px;border:2px dashed var(--mvl);padding:24px 22px;max-width:380px;text-align:center}
+.stars{display:flex;gap:2px;justify-content:center}.stars button{background:none;border:0;font-size:2rem;cursor:pointer;color:var(--mvl);line-height:1}.stars button.on{color:var(--mv)}.rs{color:var(--mv);letter-spacing:2px}
+.hero{position:relative}.hero::after{content:'';position:absolute;top:-10px;inset-inline-start:46%;width:44px;height:44px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 34 34'%3E%3Ccircle cx='9' cy='25' r='5.5' fill='%23F4DDE5' stroke='%23A86B9E' stroke-width='1.5'/%3E%3Cpath d='M12 22L27 7' stroke='%23A86B9E' stroke-width='3' stroke-linecap='round' fill='none'/%3E%3Cpath d='M27 7q5-3 3-6' stroke='%23A86B9E' stroke-width='3' stroke-linecap='round' fill='none'/%3E%3C/svg%3E") center/contain no-repeat;opacity:.55;transform:rotate(-14deg)}
+h2::before{content:'';display:inline-block;width:24px;height:24px;margin-inline-end:8px;vertical-align:-5px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 34 34'%3E%3Ccircle cx='9' cy='25' r='5.5' fill='%23F4DDE5' stroke='%23A86B9E' stroke-width='1.5'/%3E%3Cpath d='M12 22L27 7' stroke='%23A86B9E' stroke-width='3' stroke-linecap='round' fill='none'/%3E%3Cpath d='M27 7q5-3 3-6' stroke='%23A86B9E' stroke-width='3' stroke-linecap='round' fill='none'/%3E%3C/svg%3E") center/contain no-repeat}
+.card.dashc{border:2px dashed var(--mvl);outline:0}
+.wrow{position:relative}.wrow .x{position:absolute;top:10px;inset-inline-end:12px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:480px){.grid{grid-template-columns:1fr 1fr;gap:10px}.card{padding:12px;outline-offset:3px}.two{grid-template-columns:1fr}h3{font-size:.98rem}.hero::after{display:none}}
+body{-webkit-tap-highlight-color:transparent}
+@media(max-width:720px){.hero{grid-template-columns:1fr}.arch{order:-1;width:min(190px,60%)}h1{font-size:1.55rem}}
+</style>
+</head>
+<body>
+<header><a class="logo" href="#home"><img src="petali-logo.png" alt="" onerror="this.remove()"><span class="brand">Petali</span></a>
+<nav id="nav"><a href="#home" data-v="home">الرئيسية</a><a href="#products" data-v="products">المنتجات</a><a href="#wholesale" data-v="wholesale">الجملة والتوزيعات</a><a href="#track" data-v="track">تتبع طلبي</a></nav>
+<a class="cartbtn" href="#cart">🛍 السلة<i id="cc">0</i></a></header>
+<main id="view"></main>
+<footer><div class="stitch"></div><img src="petali-logo.png" alt="" onerror="this.remove()"><div class="sub">بيتالي · كروشيه بلمسة يدوية</div></footer>
+<div id="toast"></div>
+<script>
+/* ضعي هنا الرابط والمفتاح العام (anon) فقط */
+const CFG = { url: 'YOUR_SUPABASE_URL', key: 'YOUR_SUPABASE_ANON_KEY', logo: 'petali-logo.png' };
+const sb = supabase.createClient(CFG.url, CFG.key);
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+const money = n => (Math.round(Number(n || 0) * 100) / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ر.س';
+const imgUrl = p => p ? sb.storage.from('product-images').getPublicUrl(p).data.publicUrl : '';
+const ST = { awaiting_confirmation: 'بانتظار التأكيد', confirmed: 'تم تأكيد طلبك', in_progress: 'قيد التنفيذ', ready: 'جاهز للاستلام', completed: 'مكتمل', cancelled: 'ملغي' };
+let wr = [], wm = { occ: 'توزيعات مناسبة', date: '', notes: '', name: '', phone: '', loc: '' }, RV = [], fresh = false, rate = 0, P = [], O = [], L = [], S = { wholesale_min_qty: 12 }, last = null, busy = false;
+const loadCart = () => { try { return JSON.parse(localStorage.getItem('petali_cart') || '[]'); } catch { return []; } };
+let cart = loadCart();
+const saveCart = () => { try { localStorage.setItem('petali_cart', JSON.stringify(cart)); } catch {} $('#cc').textContent = cart.reduce((s, c) => s + c.qty, 0); };
+function toast(t) { const e = $('#toast'); e.textContent = t; e.classList.add('show'); setTimeout(() => e.classList.remove('show'), 2400); }
+
+/* ---------- الأسعار (للعرض فقط؛ السعر النهائي يحسبه الخادم) ---------- */
+const unitOf = (p, q) => p.wholesale_price != null && q >= (p.wholesale_min_qty || S.wholesale_min_qty) ? Number(p.wholesale_price) : Number(p.price);
+const pctOf = (p, q) => Math.max(0, ...O.filter(o => o.kind === 'percent' && (!o.applies_to_product || o.applies_to_product === p.id) && q >= o.min_qty).map(o => Number(o.value)));
+function calc() {
+  const lines = cart.map((c, i) => { const p = P.find(x => x.id === c.pid); if (!p) return null; const u = unitOf(p, c.qty), d = Math.round(u * c.qty * pctOf(p, c.qty)) / 100; return { i, p, q: c.qty, opts: c.opts, u, d, t: u * c.qty - d }; }).filter(Boolean);
+  const sub = lines.reduce((s, l) => s + l.t, 0);
+  const gifts = O.filter(o => o.kind === 'gift' && (o.applies_to_product ? lines.filter(l => l.p.id === o.applies_to_product).reduce((s, l) => s + l.q, 0) >= o.min_qty : sub >= Number(o.min_order_total))).map(o => ({ name: (P.find(x => x.id === o.gift_product_id) || {}).name || o.title, q: o.gift_qty }));
+  const fx = Math.min(sub, Math.max(0, ...O.filter(o => o.kind === 'fixed' && !o.applies_to_product && sub >= Number(o.min_order_total)).map(o => Number(o.value))));
+  return { lines, gifts, sub, fx, total: sub - fx };
+}
+const optText = o => Object.entries(o || {}).map(([k, v]) => esc(k) + ': ' + esc(v)).join(' · ');
+
+/* ---------- المنتجات ---------- */
+function card(p) {
+  const offers = O.filter(o => (o.kind === 'percent' && (!o.applies_to_product || o.applies_to_product === p.id)) || (o.kind === 'gift' && o.applies_to_product === p.id));
+  return `<div class="card scal"><div class="pimg" style="${p.image_path ? `background-image:url('${imgUrl(p.image_path)}')` : ''}">${p.image_path ? '' : '🧶'}</div>
+  <h3>${esc(p.name)}</h3><div class="sub">${esc(p.description || '')}</div>
+  <div style="margin:6px 0">${offers.map(o => `<span class="tag g">${o.kind === 'percent' ? 'خصم ' + Number(o.value) + '%' : '🎁 ' + esc(o.title)}</span>`).join('')}</div>
+  <div class="price">${money(p.price)}</div>${p.wholesale_price != null ? `<div class="sub">جملة ${money(p.wholesale_price)} من ${p.wholesale_min_qty || S.wholesale_min_qty} قطع</div>` : ''}
+  ${(p.options || []).map((g, gi) => `<label>${esc(g.name)}</label><select data-p="${p.id}" data-g="${gi}">${g.values.filter(v => v.available !== false).map(v => `<option>${esc(v.label)}</option>`).join('')}</select>`).join('')}
+  <label>الكمية</label><input type="number" min="1" max="1000" value="1" id="q_${p.id}"><button class="btn" style="width:100%;margin-top:12px" onclick="addCart('${p.id}')">إضافة للسلة</button></div>`;
+}
+function addCart(id) {
+  const p = P.find(x => x.id === id), q = Math.max(1, parseInt($('#q_' + id).value) || 1), opts = {};
+  document.querySelectorAll(`[data-p="${id}"]`).forEach(s => { opts[p.options[+s.dataset.g].name] = s.value; });
+  const k = JSON.stringify(opts), ex = cart.find(c => c.pid === id && JSON.stringify(c.opts) === k);
+  if (ex) ex.qty = Math.min(1000, ex.qty + q); else cart.push({ pid: id, qty: q, opts });
+  saveCart(); toast('أضيف إلى السلة 🛍');
+}
+
+/* ---------- الصفحات ---------- */
+const R = {
+  home() {
+    return `<section class="hero"><div><div class="sub">✿ صُنع يدويًا بحب</div><h1>ربطات شعر كروشيه <span class="brand">ناعمة</span> بلمسة يدوية</h1>
+    <p style="margin:10px 0 16px">في بيتالي نصنع كل قطعة بالكروشيه بعناية وألوان هادئة، ونجهزها لك أو لمناسباتك وتوزيعاتك.</p><div class="row"><a class="btn" href="#products">تصفح المنتجات</a><a class="btn soft" href="#track">تتبع طلبي</a></div></div>
+    <div class="arch"><div><img src="${CFG.logo}" alt="" onerror="this.remove()"><span>Petali ✿ crochet</span></div></div></section>
+    <div class="stitch"></div><h2>منتجات مميزة</h2>${P.length ? `<div class="grid">${P.slice(0, 4).map(card).join('')}</div>` : '<div class="card center sub">المنتجات قادمة قريبًا 🌸</div>'}
+    <h2>كيف تطلب؟</h2><div class="steps"><div class="card scal"><b>١</b>اختر منتجاتك وألوانها وأضفها إلى السلة.</div><div class="card scal"><b>٢</b>أكمل بياناتك واختر مكان الاستلام، وستحصل على رقم طلب وفاتورة.</div><div class="card scal"><b>٣</b>نتواصل معك عبر واتساب لتأكيد الطلب، ثم نبلغك عند جاهزيته.</div></div>
+    ${revSec()}<div class="card scal dashc" style="background:var(--pk);margin-top:20px"><h3>طلبات بالجملة وتوزيعات المناسبات 🎀</h3><p class="sub">أسعار خاصة للكميات الكبيرة ونموذج مخصص لتوزيعات المناسبات.</p><a class="btn soft" style="display:inline-block;margin-top:10px" href="#wholesale">اطلب بالجملة</a></div>`;
+  },
+  products() { return `<h1>المنتجات</h1><div class="stitch"></div>${P.length ? `<div class="grid">${P.map(card).join('')}</div>` : '<div class="card center sub">لا توجد منتجات متاحة حاليًا.</div>'}`; },
+  cart() {
+    const c = calc(); if (!c.lines.length) return `<h1>السلة</h1><div class="card center scal"><div style="font-size:2rem">🧶</div><p class="sub">سلتك فارغة</p><a class="btn" style="display:inline-block;margin-top:10px" href="#products">ابدأ التسوق</a></div>`;
+    return `<h1>السلة</h1><div class="card scal">${c.lines.map(l => `<div class="line"><div class="pimg" style="${l.p.image_path ? `background-image:url('${imgUrl(l.p.image_path)}')` : ''}">${l.p.image_path ? '' : '🧶'}</div>
+      <div><b>${esc(l.p.name)}</b><div class="sub">${optText(l.opts)}</div><div class="qty"><button onclick="chg(${l.i},-1)">−</button><b>${l.q}</b><button onclick="chg(${l.i},1)">+</button><button onclick="chg(${l.i},-999)" title="حذف">✕</button></div>${l.d ? `<div class="sub">خصم ${money(l.d)}</div>` : ''}</div><b>${money(l.t)}</b></div>`).join('')}
+      ${c.gifts.map(g => `<div class="line"><div class="pimg">🎁</div><div><b>${esc(g.name)}</b><div class="sub">هدية مجانية × ${g.q}</div></div><b>مجانًا</b></div>`).join('')}</div>
+    <div class="card scal"><div class="tot"><span>المجموع</span><span>${money(c.sub)}</span></div>${c.fx ? `<div class="tot"><span>خصم العرض</span><span>− ${money(c.fx)}</span></div>` : ''}<div class="tot big"><span>الإجمالي</span><span>${money(c.total)}</span></div>
+    <div class="sub">السعر النهائي يؤكَّد عند إتمام الطلب.</div><a class="btn" style="display:block;text-align:center;margin-top:12px" href="#checkout">متابعة الطلب</a></div>`;
+  },
+  checkout() {
+    const c = calc(); if (!c.lines.length) { location.hash = '#cart'; return ''; }
+    return `<h1>إتمام الطلب</h1><div class="card scal"><label>الاسم</label><input id="f_n" maxlength="80" autocomplete="name"><label>رقم التواصل (واتساب)</label><input id="f_p" type="tel" inputmode="tel" dir="ltr" style="text-align:right" autocomplete="tel">
+    <label>مكان الاستلام</label><select id="f_l">${L.map(l => `<option value="${l.id}">${esc(l.name)}</option>`).join('')}</select><div class="sub" id="f_li">${esc(L[0]?.instructions || '')}</div>
+    <label>طريقة الاستلام</label><div class="dis">🚚 التوصيل — غير متوفر حاليًا، قريبًا</div>
+    <label>ملاحظات (اختياري)</label><textarea id="f_t" rows="2" maxlength="500"></textarea></div>
+    <div class="soft-note">🌸 بعد إرسال الطلب سيتواصل معك أحدنا عبر واتساب لتأكيده، وقد نطلب منك إرسال الفاتورة، فاحتفظ بها من فضلك.</div>
+    <div class="card scal"><div class="tot big" style="border:0;margin:0;padding:0"><span>الإجمالي</span><span>${money(c.total)}</span></div></div>
+    <button class="btn" style="width:100%" id="sendbtn" onclick="submit()">إرسال الطلب</button><div class="err" id="err"></div>`;
+  },
+  wholesale() {
+    if (!P.length) return '<h1>الجملة والتوزيعات</h1><div class="card center sub empty">المنتجات قادمة قريبًا.</div>';
+    if (!wr.length) wr = [wNew()];
+    const est = wr.reduce((t, r) => { const p = P.find(x => x.id === r.pid); return t + (p ? unitOf(p, r.qty) * r.qty : 0); }, 0), W = P.filter(p => p.wholesale_price != null);
+    return `<h1>الجملة والتوزيعات 🎀</h1><div class="stitch"></div>
+    <div class="card scal"><p>توزيعات للمناسبات (مواليد، أعراس، تخرج…) أو كميات كبيرة. يُطبَّق سعر الجملة تلقائيًا عند وصول الكمية للحد المحدد لكل منتج.</p>
+    <div style="margin-top:8px">${W.map(p => `<div class="tot"><span>${esc(p.name)}</span><span>${money(p.wholesale_price)} · من ${p.wholesale_min_qty || S.wholesale_min_qty} قطع</span></div>`).join('') || '<div class="sub">سنعرض لك سعرًا مناسبًا لكميتك عند التأكيد.</div>'}</div></div>
+    <h2>اختر المنتجات والكميات</h2>
+    ${wr.map((r, i) => { const p = P.find(x => x.id === r.pid); return `<div class="card scal wrow">${wr.length > 1 ? `<button class="btn soft sm x" onclick="wr.splice(${i},1);route()">✕</button>` : ''}
+      <label style="margin-top:0">المنتج</label><select onchange="wPick(${i},this.value)">${P.map(x => `<option value="${x.id}" ${x.id === r.pid ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}</select>
+      ${(p?.options || []).map((g, gi) => `<label>${esc(g.name)}</label><select onchange="wr[${i}].opts[P.find(x=>x.id===wr[${i}].pid).options[${gi}].name]=this.value">${g.values.filter(v => v.available !== false).map(v => `<option ${r.opts[g.name] === v.label ? 'selected' : ''}>${esc(v.label)}</option>`).join('')}</select>`).join('')}
+      <label>الكمية</label><input type="number" min="1" max="1000" value="${r.qty}" oninput="wr[${i}].qty=Math.max(1,parseInt(this.value)||1)" onchange="route()"></div>`; }).join('')}
+    <button class="btn soft" onclick="wr.push(wNew());route()">+ إضافة لون أو منتج آخر</button>
+    <h2>تفاصيل الطلب</h2><div class="card scal"><div class="two"><div><label style="margin-top:0">نوع الطلب</label><select onchange="wm.occ=this.value">${['توزيعات مناسبة', 'طلب بكمية كبيرة', 'أخرى'].map(o => `<option ${wm.occ === o ? 'selected' : ''}>${o}</option>`).join('')}</select></div>
+    <div><label style="margin-top:0">الموعد المطلوب</label><input type="date" value="${wm.date}" onchange="wm.date=this.value"></div></div>
+    <label>الاسم</label><input maxlength="80" value="${esc(wm.name)}" oninput="wm.name=this.value"><label>رقم التواصل (واتساب)</label><input type="tel" dir="ltr" style="text-align:right" value="${esc(wm.phone)}" oninput="wm.phone=this.value">
+    <label>مكان الاستلام</label><select onchange="wm.loc=this.value">${L.map(l => `<option value="${l.id}" ${wm.loc === l.id ? 'selected' : ''}>${esc(l.name)}</option>`).join('')}</select>
+    <label>ملاحظات (اختياري)</label><textarea rows="2" maxlength="300" oninput="wm.notes=this.value">${esc(wm.notes)}</textarea></div>
+    <div class="soft-note">🌸 سنتواصل معك عبر واتساب لتأكيد التفاصيل والسعر النهائي، وقد نطلب عربونًا للكميات الكبيرة.</div>
+    <div class="card scal"><div class="tot big" style="border:0;margin:0;padding:0"><span>الإجمالي التقديري</span><span>${money(est)}</span></div></div>
+    <button class="btn" style="width:100%" id="wbtn" onclick="wSubmit()">إرسال طلب الجملة</button><div class="err" id="werr"></div>`;
+  },
+  invoice() { if (!last) { location.hash = '#track'; return ''; }
+    return `<div class="soft-note center">✅ تم استلام طلبك! الفاتورة مهمة، يرجى حفظها لأنها قد تُطلب عند تأكيد الطلب عبر واتساب.</div>${inv(last)}${saveBtns()}
+    <div class="center"><a class="btn soft" href="#home">العودة للرئيسية</a></div>`; },
+  track() {
+    return `<h1>تتبع طلبي</h1><div class="card scal"><label>رقم الطلب</label><input id="t_n" placeholder="PT-0001" dir="ltr" style="text-align:right"><label>رقم التواصل</label><input id="t_p" type="tel" dir="ltr" style="text-align:right">
+    <button class="btn" style="width:100%;margin-top:12px" onclick="track()">عرض حالة الطلب</button><div class="err" id="err"></div></div><div id="res"></div>`;
+  }
+};
+
+/* ---------- الفاتورة ---------- */
+function inv(o) {
+  const d = new Date(o.created_at).toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' });
+  return `<div id="invoice" class="invwrap"><div class="inv"><div class="hd"><img src="${CFG.logo}" alt="" onerror="this.remove()"><div><b class="brand" style="font-size:1.5rem">Petali</b><div class="sub">فاتورة طلب · بيتالي</div></div></div>
+  <span class="pill">رقم الطلب <b dir="ltr">${esc(o.order_no)}</b></span><div class="sub center">${d}</div>
+  <div class="kv"><span>الاسم</span><b>${esc(o.customer_name)}</b><span>رقم التواصل</span><b dir="ltr" style="text-align:right">${esc(o.customer_phone)}</b><span>الاستلام</span><b>${esc(o.pickup_location || '—')}</b></div>
+  <table><tr><th>المنتج</th><th style="text-align:center">الكمية</th><th style="text-align:end">المبلغ</th></tr>
+  ${o.items.map(i => `<tr><td><b>${esc(i.name)}${i.is_gift ? ' 🎁' : ''}</b><div class="sub">${optText(i.options)}${i.discount > 0 ? ` · خصم ${money(i.discount)}` : ''}</div></td><td style="text-align:center">${i.quantity}</td><td class="n">${i.is_gift ? 'هدية' : money(i.line_total)}</td></tr>`).join('')}</table>
+  <div style="margin-top:10px"><div class="tot"><span>المجموع</span><span>${money(o.subtotal)}</span></div>${Number(o.discount_total) > 0 ? `<div class="tot"><span>الخصومات</span><span>− ${money(o.discount_total)}</span></div>` : ''}<div class="tot big"><span>الإجمالي</span><span>${money(o.total)}</span></div></div>
+  <div class="nt"><p>💬 سيتواصل معك أحد أفراد بيتالي عبر واتساب لتأكيد طلبك.</p>${o.deposit_may_be_required ? '<p>🌷 قد نطلب عربونًا لتأكيد الطلبات الكبيرة.</p>' : ''}<p>📌 يرجى حفظ هذه الفاتورة، فقد تُطلب لتأكيد الطلب.</p>${o.pickup_instructions ? `<p>📍 ${esc(o.pickup_instructions)}</p>` : ''}</div>
+  <div class="stitch"></div><div class="center sub">شكرًا لاختيارك بيتالي 🌸</div></div></div>`;
+}
+
+/* ---------- الإجراءات ---------- */
+function chg(i, d) { cart[i].qty += d; if (cart[i].qty < 1) cart.splice(i, 1); saveCart(); route(); }
+const MSG = { invalid_name: 'اكتب اسمك من فضلك.', invalid_phone: 'رقم التواصل غير صحيح.', invalid_location: 'اختر مكان استلام متاحًا.', product_unavailable: 'أحد المنتجات لم يعد متاحًا، راجع السلة.', invalid_qty: 'الكمية غير صحيحة.' };
+const errMsg = e => { const k = Object.keys(MSG).find(k => (e.message || '').includes(k)); return k ? MSG[k] : 'تعذّر إتمام العملية، حاول مرة أخرى.'; };
+async function submit() {
+  if (busy) return; const n = $('#f_n').value.trim(), p = $('#f_p').value.trim(); if (n.length < 2) return $('#err').textContent = MSG.invalid_name; if (p.replace(/\D/g, '').length < 8) return $('#err').textContent = MSG.invalid_phone;
+  busy = true; $('#sendbtn').disabled = true; $('#err').textContent = '';
+  const { data, error } = await sb.rpc('create_order', { p_name: n, p_phone: p, p_location: $('#f_l').value, p_items: cart.map(c => ({ product_id: c.pid, qty: c.qty, options: c.opts })), p_notes: $('#f_t').value.trim() || null, p_is_wholesale: false });
+  busy = false; if (error) { $('#sendbtn').disabled = false; return $('#err').textContent = errMsg(error); }
+  last = data; fresh = true; cart = []; saveCart(); location.hash = '#invoice';
+}
+async function track() {
+  const { data, error } = await sb.rpc('track_order', { p_order_no: $('#t_n').value, p_phone: $('#t_p').value });
+  if (error) return $('#err').textContent = 'تعذّر البحث، حاول مرة أخرى.'; if (!data) { $('#res').innerHTML = ''; return $('#err').textContent = 'لم نجد طلبًا بهذه البيانات، تأكد من الرقم وحاول مرة أخرى.'; }
+  $('#err').textContent = ''; last = data; const k = ['awaiting_confirmation', 'confirmed', 'in_progress', 'ready', 'completed'], at = k.indexOf(data.status);
+  $('#res').innerHTML = `<div class="card scal"><div class="row"><h3 class="grow">${esc(data.customer_name)}</h3><span class="tag">${ST[data.status]}</span></div>
+  ${data.status === 'cancelled' ? '<p class="sub">تم إلغاء هذا الطلب.</p>' : `<div class="steps2">${['التأكيد', 'تم التأكيد', 'التنفيذ', 'جاهز', 'مكتمل'].map((t, i) => `<div class="${i <= at ? 'on' : ''}"><i>${i <= at ? '✓' : ''}</i>${t}</div>`).join('')}</div>
+  ${data.status === 'in_progress' ? `<div class="bar"><i style="width:${data.progress_percent}%"></i></div><div class="sub center">اكتمل ${data.progress_percent}% من طلبك</div>` : ''}`}
+  <div class="row" style="margin-top:12px"><a class="btn soft sm" href="#invoice">عرض الفاتورة</a></div></div>`;
+  rate = 0; $('#res').insertAdjacentHTML('beforeend', reviewBox(data));
+}
+
+/* ---------- طلب الجملة ---------- */
+const defOpts = p => Object.fromEntries((p?.options || []).filter(g => g.values.length).map(g => [g.name, (g.values.find(v => v.available !== false) || g.values[0]).label]));
+const wNew = () => ({ pid: P[0]?.id, qty: Number(S.wholesale_min_qty) || 12, opts: defOpts(P[0]) });
+function wPick(i, id) { wr[i].pid = id; wr[i].opts = defOpts(P.find(x => x.id === id)); route(); }
+async function wSubmit() {
+  if (busy) return; const e = $('#werr'), n = wm.name.trim(), items = wr.filter(r => r.qty >= 1 && r.pid);
+  if (n.length < 2) return e.textContent = MSG.invalid_name; if (wm.phone.replace(/\D/g, '').length < 8) return e.textContent = MSG.invalid_phone; if (!items.length) return e.textContent = 'اختر منتجًا وكمية.';
+  const loc = wm.loc || L[0]?.id; if (!loc) return e.textContent = MSG.invalid_location;
+  const notes = ('[طلب جملة] ' + wm.occ + (wm.date ? ' | الموعد المطلوب: ' + wm.date : '') + (wm.notes.trim() ? ' | ' + wm.notes.trim() : '')).slice(0, 500);
+  busy = true; $('#wbtn').disabled = true; e.textContent = '';
+  const { data, error } = await sb.rpc('create_order', { p_name: n, p_phone: wm.phone.trim(), p_location: loc, p_items: items.map(r => ({ product_id: r.pid, qty: r.qty, options: r.opts })), p_notes: notes, p_is_wholesale: true });
+  busy = false; if (error) { $('#wbtn').disabled = false; return e.textContent = errMsg(error); }
+  last = data; fresh = true; wr = []; location.hash = '#invoice';
+}
+
+/* ---------- حفظ الفاتورة ---------- */
+const saveBtns = () => `<div class="row" style="justify-content:center;margin:18px 0 10px"><button class="btn" onclick="saveInv('png')">💾 حفظ كصورة</button><button class="btn" onclick="saveInv('pdf')">📄 حفظ PDF</button></div>`;
+const dl = (b, n) => { const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = n; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); };
+async function saveInv(t) {
+  const el = $('#invoice'); if (!el || !last) return; toast('جارٍ تجهيز الفاتورة...');
+  try {
+    await document.fonts.ready; const c = await html2canvas(el, { scale: 2, backgroundColor: '#FFF9F4', useCORS: true }), name = 'petali-' + last.order_no;
+    if (t === 'png') c.toBlob(b => dl(b, name + '.png'), 'image/png');
+    else { const { jsPDF } = window.jspdf, w = 110, h = w * c.height / c.width, d = new jsPDF({ unit: 'mm', format: [w + 20, h + 20] }); d.setFillColor(255, 249, 244); d.rect(0, 0, w + 20, h + 20, 'F'); d.addImage(c.toDataURL('image/png'), 'PNG', 10, 10, w, h); d.save(name + '.pdf'); }
+    closeModal(); toast('تم الحفظ ✓');
+  } catch (e) { toast('تعذّر الحفظ، يمكنك أخذ لقطة شاشة للفاتورة'); }
+}
+function modal() {
+  const m = document.createElement('div'); m.className = 'modal'; m.id = 'mdl';
+  m.innerHTML = `<div class="box"><div style="font-size:2rem">🌸</div><h3>تم إنشاء طلبك</h3><p class="sub" style="margin:8px 0 14px">الفاتورة مهمة، يرجى حفظها لأنها قد تُطلب عند تأكيد الطلب عبر واتساب.</p><div class="row" style="justify-content:center"><button class="btn" onclick="saveInv('png')">حفظ كصورة</button><button class="btn" onclick="saveInv('pdf')">حفظ PDF</button></div><button class="btn soft sm" style="margin-top:14px" onclick="closeModal()">لاحقًا</button></div>`;
+  document.body.appendChild(m);
+}
+const closeModal = () => $('#mdl')?.remove();
+
+/* ---------- التقييمات ---------- */
+const stars = n => '★'.repeat(n) + '☆'.repeat(5 - n);
+const revSec = () => RV.length ? `<h2>آراء العملاء</h2><div class="grid">${RV.map(r => `<div class="card scal"><div class="rs">${stars(r.rating)}</div><p>${esc(r.comment || '')}</p><div class="sub">— ${esc(r.first_name)}</div></div>`).join('')}</div>` : '';
+const reviewBox = d => d.review ? `<div class="card scal"><h3>تقييمك</h3><div class="rs">${stars(d.review.rating)}</div><p>${esc(d.review.comment || '')}</p><div class="sub">شكرًا لك 🌷</div></div>`
+  : d.can_review ? `<div class="card scal"><h3>كيف كانت تجربتك؟ 🌷</h3><div class="stars">${[1, 2, 3, 4, 5].map(i => `<button onclick="setRate(${i})" data-s="${i}" aria-label="${i}">★</button>`).join('')}</div>
+  <textarea id="rv_c" rows="3" maxlength="1000" placeholder="اكتب رأيك (اختياري)" style="margin-top:8px"></textarea><button class="btn" style="width:100%;margin-top:10px" onclick="sendReview()">إرسال التقييم</button><div class="err" id="rv_e"></div></div>` : '';
+function setRate(i) { rate = i; document.querySelectorAll('.stars button').forEach(b => b.classList.toggle('on', +b.dataset.s <= i)); }
+async function sendReview() {
+  if (!rate) return $('#rv_e').textContent = 'اختر عدد النجوم أولًا.';
+  const { error } = await sb.rpc('submit_review', { p_order_no: $('#t_n').value, p_phone: $('#t_p').value, p_rating: rate, p_comment: $('#rv_c').value.trim() || null });
+  if (error) return $('#rv_e').textContent = (error.message || '').includes('already_reviewed') ? 'سبق أن قيّمت هذا الطلب، شكرًا لك.' : 'تعذّر إرسال التقييم، حاول مرة أخرى.';
+  toast('شكرًا لتقييمك 🌷'); track();
+}
+
+/* ---------- التشغيل ---------- */
+function route() {
+  const h = (location.hash || '#home').slice(1), v = R[h] ? h : 'home';
+  $('#view').innerHTML = R[v](); document.querySelectorAll('#nav a').forEach(a => a.classList.toggle('on', a.dataset.v === v)); scrollTo(0, 0); closeModal();
+  if (v === 'invoice' && fresh) { fresh = false; modal(); }
+  if (v === 'checkout') $('#f_l')?.addEventListener('change', e => { $('#f_li').textContent = L.find(l => l.id === e.target.value)?.instructions || ''; });
+}
+addEventListener('hashchange', route);
+(async () => {
+  saveCart();
+  const [p, o, l, s, rv] = await Promise.all([sb.from('products').select('*').order('sort_order').order('created_at'), sb.from('offers').select('*'), sb.from('pickup_locations').select('*').order('sort_order'), sb.rpc('get_public_settings'), sb.rpc('get_public_reviews', { p_limit: 12 })]);
+  P = p.data || []; O = o.data || []; L = l.data || []; if (s.data) S = s.data; RV = rv.data || [];
+  cart = cart.filter(c => P.some(x => x.id === c.pid)); saveCart(); route();
+})();
+</script>
+</body>
+</html>
