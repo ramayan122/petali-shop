@@ -100,6 +100,16 @@ h2::before,.hero::after{background-image:url("data:image/svg+xml,%3Csvg xmlns='h
 .stars button .lucide{width:30px;height:30px}.stars button.on{color:#D9A441}.stars button.on .lucide{fill:currentColor}
 .btn .lucide{margin-inline-end:4px}
 @media(max-width:480px){.tiers{flex-direction:column;gap:6px}}
+h2::before,.hero::after{content:none!important;display:none!important}
+.srch2{position:relative;margin:6px 0 12px}.srch2 .lucide{position:absolute;inset-inline-start:14px;top:15px;color:var(--tx2)}.srch2 input{padding:13px 14px;padding-inline-start:44px;font-size:1rem}
+.chipsrow{display:flex;gap:8px;overflow-x:auto;padding:2px 0 12px;scrollbar-width:none}.chip{white-space:nowrap;border:1.5px solid var(--mvl);background:#fff;border-radius:99px;padding:9px 18px;cursor:pointer;font-weight:600;color:var(--tx)}.chip.on{background:var(--mv);border-color:var(--mv);color:#fff}
+.trust{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0 4px}.trust div{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;font-size:.88rem;color:var(--tx2);padding:14px 6px;background:rgba(255,255,255,.65);border-radius:16px}.trust .lucide{width:24px;height:24px;color:var(--mv)}
+.stepper{display:flex;align-items:center;gap:8px;margin:4px 0 14px;font-size:.88rem;color:var(--tx2)}.stepper span{display:flex;align-items:center;gap:6px}.stepper i{width:26px;height:26px;border-radius:50%;background:var(--mvl);color:var(--tx);display:inline-grid;place-items:center;font-style:normal;font-size:.8rem;font-weight:700}.stepper .on{color:var(--tx);font-weight:700}.stepper .on i{background:var(--mv);color:#fff}.stepper hr{flex:1;border:0;border-top:2px dashed var(--mvl)}
+.fe{color:#C0675A;font-size:.82rem;min-height:1.1em;margin-top:3px}.hint{font-size:.8rem;color:var(--tx2);margin-top:3px}.rq{color:#C0675A}
+input.bad,select.bad{border-color:#C0675A}
+.skel{height:280px;border-radius:22px;background:linear-gradient(90deg,#F1E8DF 25%,#F8F1EA 50%,#F1E8DF 75%);background-size:200% 100%;animation:sk 1.2s infinite}@keyframes sk{to{background-position:-200% 0}}
+details.sum summary{cursor:pointer;font-weight:700;display:flex;justify-content:space-between;gap:10px}
+.btn{min-height:46px}
 </style>
 </head>
 <body>
@@ -118,7 +128,7 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&
 const money = n => (Math.round(Number(n || 0) * 100) / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ر.س';
 const imgUrl = p => p ? sb.storage.from('product-images').getPublicUrl(p).data.publicUrl : '';
 const ST = { awaiting_confirmation: 'بانتظار التأكيد', confirmed: 'تم تأكيد طلبك', in_progress: 'قيد التنفيذ', ready: 'جاهز للاستلام', completed: 'مكتمل', cancelled: 'ملغي' };
-let RV = [], fresh = false, rate = 0, P = [], O = [], L = [], S = { wholesale_min_qty: 12 }, last = null, busy = false;
+let C = [], pc = 'all', ps = '', tm, RV = [], fresh = false, rate = 0, P = [], O = [], L = [], S = { wholesale_min_qty: 12 }, last = null, busy = false;
 const loadCart = () => { try { return JSON.parse(localStorage.getItem('petali_cart') || '[]'); } catch { return []; } };
 let cart = loadCart();
 const saveCart = () => { try { localStorage.setItem('petali_cart', JSON.stringify(cart)); } catch {} $('#cc').textContent = cart.reduce((s, c) => s + c.qty, 0); try { cartBar(); } catch (e) {} };
@@ -175,11 +185,19 @@ const R = {
     return `<section class="hero"><div><div class="sub">صُنع يدويًا بحب</div><h1>ربطات شعر كروشيه <span class="brand">ناعمة</span> بلمسة يدوية</h1>
     <p style="margin:10px 0 16px">في بيتالي نصنع كل قطعة بالكروشيه بعناية وألوان هادئة، ونجهزها لك أو لمناسباتك وتوزيعاتك.</p><div class="row"><a class="btn" href="#products">تصفح المنتجات</a><a class="btn soft" href="#track">تتبع طلبي</a></div></div>
     <div class="arch"><div><img src="${CFG.logo}" alt="" onerror="this.remove()"><span>Petali · crochet</span></div></div></section>
+    <div class="trust"><div>${ic('heart')}صُنع يدويًا بعناية</div><div>${ic('map-pin')}استلام من مواقعنا</div><div>${ic('message-circle')}تأكيد عبر واتساب</div></div>
+    ${C.length ? `<h2>تسوّق حسب القسم</h2><div class="chipsrow">${C.map(c => `<button class="chip" onclick="pc='${c.id}';location.hash='#products'">${esc(c.name)}</button>`).join('')}</div>` : ''}
     <div class="stitch"></div><h2>منتجات مميزة</h2>${P.length ? `<div class="grid">${P.slice(0, 4).map(card).join('')}</div>` : '<div class="card center sub">المنتجات قادمة قريبًا</div>'}
-    <h2>كيف تطلب؟</h2><div class="steps"><div class="card scal"><b>١</b>اختر منتجاتك وألوانها وأضفها إلى السلة.</div><div class="card scal"><b>٢</b>أكمل بياناتك واختر مكان الاستلام، وستحصل على رقم طلب وفاتورة.</div><div class="card scal"><b>٣</b>نتواصل معك عبر واتساب لتأكيد الطلب، ثم نبلغك عند جاهزيته.</div></div>
+    <h2>كيف تطلب؟</h2><div class="steps"><div class="card scal"><b>1</b>اختر منتجاتك وألوانها وأضفها إلى السلة.</div><div class="card scal"><b>2</b>أكمل بياناتك واختر مكان الاستلام، وستحصل على رقم طلب وفاتورة.</div><div class="card scal"><b>3</b>نتواصل معك عبر واتساب لتأكيد الطلب، ثم نبلغك عند جاهزيته.</div></div>
     ${revSec()}<div class="card scal dashc"><h3>${ic('layers')} كلما زادت الكمية قلّ سعر القطعة</h3><p class="sub">تجد أسعار الكميات الكبيرة وتوزيعات المناسبات مباشرة في صفحة كل منتج، ويُطبَّق السعر تلقائيًا عند اختيار الكمية.</p></div>`;
   },
-  products() { return `<h1>المنتجات</h1><div class="stitch"></div>${P.length ? `<div class="grid">${P.map(card).join('')}</div>` : '<div class="card center sub">لا توجد منتجات متاحة حاليًا.</div>'}`; },
+  products() {
+    const f = P.filter(p => (pc === 'all' || p.category_id === pc) && (!ps || (p.name + ' ' + (p.description || '')).includes(ps)));
+    return `<h1>المنتجات</h1><div class="stitch"></div>
+    <div class="srch2">${ic('search')}<input id="ps" placeholder="ابحث عن منتج" value="${esc(ps)}" oninput="ps=this.value;clearTimeout(tm);tm=setTimeout(()=>{route(true);const i=$('#ps');i.focus();i.setSelectionRange(99,99)},250)"></div>
+    ${C.length ? `<div class="chipsrow"><button class="chip ${pc === 'all' ? 'on' : ''}" onclick="pc='all';route(true)">الكل</button>${C.map(c => `<button class="chip ${pc === c.id ? 'on' : ''}" onclick="pc='${c.id}';route(true)">${esc(c.name)}</button>`).join('')}</div>` : ''}
+    ${f.length ? `<div class="grid">${f.map(card).join('')}</div>` : '<div class="card center sub">لا توجد منتجات مطابقة.</div>'}`;
+  },
   cart() {
     const c = calc(); if (!c.lines.length) return `<h1>السلة</h1><div class="card center scal"><div class="big">${ic('shopping-bag')}</div><p class="sub">سلتك فارغة</p><a class="btn" style="display:inline-block;margin-top:10px" href="#products">ابدأ التسوق</a></div>`;
     return `<h1>السلة</h1><div class="card scal">${c.lines.map(l => `<div class="line"><div class="pimg" style="${l.p.image_path ? `background-image:url('${imgUrl(l.p.image_path)}')` : ''}">${l.p.image_path ? '' : ic('flower-2')}</div>
@@ -190,13 +208,15 @@ const R = {
   },
   checkout() {
     const c = calc(); if (!c.lines.length) { location.hash = '#cart'; return ''; }
-    return `<h1>إتمام الطلب</h1><div class="card scal"><label>الاسم</label><input id="f_n" maxlength="80" autocomplete="name"><label>رقم التواصل (واتساب)</label><input id="f_p" type="tel" inputmode="tel" dir="ltr" style="text-align:right" autocomplete="tel">
-    <label>مكان الاستلام</label><select id="f_l">${L.map(l => `<option value="${l.id}">${esc(l.name)}</option>`).join('')}</select><div class="sub" id="f_li">${esc(L[0]?.instructions || '')}</div>
-    <label>طريقة الاستلام</label><div class="dis">${ic('truck')} التوصيل — غير متوفر حاليًا، قريبًا</div>
+    return `<h1>إتمام الطلب</h1><div class="stepper"><span><i>1</i>السلة</span><hr><span class="on"><i>2</i>بياناتك</span><hr><span><i>3</i>الفاتورة</span></div>
+    <div class="card scal"><label>الاسم <b class="rq">*</b></label><input id="f_n" maxlength="80" autocomplete="name" onblur="fv('n')"><div class="fe" id="e_n"></div>
+    <label>رقم الجوال (واتساب) <b class="rq">*</b></label><input id="f_p" type="tel" inputmode="tel" dir="ltr" style="text-align:right" autocomplete="tel" onblur="fv('p')"><div class="hint">نحتاج رقمك لتأكيد الطلب عبر واتساب ولتتبع طلبك.</div><div class="fe" id="e_p"></div>
+    <label>مكان الاستلام <b class="rq">*</b></label><select id="f_l">${L.map(l => `<option value="${l.id}">${esc(l.name)}</option>`).join('')}</select><div class="sub" id="f_li">${esc(L[0]?.instructions || '')}</div>
+    <div class="dis" style="margin-top:12px">${ic('truck')} التوصيل — غير متوفر حاليًا، قريبًا</div>
     <label>ملاحظات (اختياري)</label><textarea id="f_t" rows="2" maxlength="500"></textarea></div>
+    <details class="card sum"><summary><span>ملخص الطلب (${c.lines.length + c.gifts.length} أصناف)</span><b>${money(c.total)}</b></summary>${c.lines.map(l => `<div class="tot"><span>${esc(l.p.name)} × ${l.q}<div class="sub">${optText(l.opts)}</div></span><span>${money(l.t)}</span></div>`).join('')}${c.gifts.map(g => `<div class="tot"><span>${esc(g.name)} × ${g.q} (هدية)</span><span>مجانًا</span></div>`).join('')}${c.fx ? `<div class="tot"><span>خصم العرض</span><span>− ${money(c.fx)}</span></div>` : ''}</details>
     <div class="soft-note">بعد إرسال الطلب سيتواصل معك أحدنا عبر واتساب لتأكيده، وقد نطلب منك إرسال الفاتورة، فاحتفظ بها من فضلك.</div>
-    <div class="card scal"><div class="tot big" style="border:0;margin:0;padding:0"><span>الإجمالي</span><span>${money(c.total)}</span></div></div>
-    <button class="btn" style="width:100%" id="sendbtn" onclick="submit()">إرسال الطلب</button><div class="err" id="err"></div>`;
+    <button class="btn" style="width:100%" id="sendbtn" onclick="submit()">إرسال الطلب · ${money(c.total)}</button><div class="err" id="err"></div>`;
   },
   invoice() { if (!last) { location.hash = '#track'; return ''; }
     return `<div class="soft-note center">${ic('check-circle-2')} تم استلام طلبك! الفاتورة مهمة، يرجى حفظها لأنها قد تُطلب عند تأكيد الطلب عبر واتساب.</div>${inv(last)}${saveBtns()}
@@ -209,7 +229,7 @@ const R = {
 
 /* ---------- الفاتورة ---------- */
 function inv(o) {
-  const d = new Date(o.created_at).toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' });
+  const d = new Date(o.created_at).toLocaleDateString('ar-u-ca-gregory-nu-latn', { year: 'numeric', month: 'long', day: 'numeric' });
   return `<div id="invoice" class="invwrap"><div class="inv"><div class="hd"><img src="${CFG.logo}" alt="" onerror="this.remove()"><div><b class="brand" style="font-size:1.5rem">Petali</b><div class="sub">فاتورة طلب · بيتالي</div></div></div>
   <span class="pill">رقم الطلب <b dir="ltr">${esc(o.order_no)}</b></span><div class="sub center">${d}</div>
   <div class="kv"><span>الاسم</span><b>${esc(o.customer_name)}</b><span>رقم التواصل</span><b dir="ltr" style="text-align:right">${esc(o.customer_phone)}</b><span>الاستلام</span><b>${esc(o.pickup_location || '—')}</b></div>
@@ -224,8 +244,9 @@ function inv(o) {
 function chg(i, d) { cart[i].qty += d; if (cart[i].qty < 1) cart.splice(i, 1); saveCart(); route(); }
 const MSG = { invalid_name: 'اكتب اسمك من فضلك.', invalid_phone: 'رقم التواصل غير صحيح.', invalid_location: 'اختر مكان استلام متاحًا.', product_unavailable: 'أحد المنتجات لم يعد متاحًا، راجع السلة.', invalid_qty: 'الكمية غير صحيحة.' };
 const errMsg = e => { const k = Object.keys(MSG).find(k => (e.message || '').includes(k)); return k ? MSG[k] : 'تعذّر إتمام العملية، حاول مرة أخرى.'; };
+function fv(k) { const el = $('#f_' + k), e = $('#e_' + k), v = el.value.trim(); let m = ''; if (k === 'n' && v.length < 2) m = 'اكتب اسمك من فضلك'; if (k === 'p' && v.replace(/\D/g, '').length < 8) m = 'رقم الجوال غير مكتمل'; e.textContent = m; el.classList.toggle('bad', !!m); return !m; }
 async function submit() {
-  if (busy) return; const n = $('#f_n').value.trim(), p = $('#f_p').value.trim(); if (n.length < 2) return $('#err').textContent = MSG.invalid_name; if (p.replace(/\D/g, '').length < 8) return $('#err').textContent = MSG.invalid_phone;
+  if (busy) return; const okN = fv('n'), okP = fv('p'); if (!okN || !okP) return (okN ? $('#f_p') : $('#f_n')).focus(); const n = $('#f_n').value.trim(), p = $('#f_p').value.trim();
   busy = true; $('#sendbtn').disabled = true; $('#err').textContent = '';
   const { data, error } = await sb.rpc('create_order', { p_name: n, p_phone: p, p_location: $('#f_l').value, p_items: cart.map(c => ({ product_id: c.pid, qty: c.qty, options: c.opts })), p_notes: $('#f_t').value.trim() || null, p_is_wholesale: false });
   busy = false; if (error) { $('#sendbtn').disabled = false; return $('#err').textContent = errMsg(error); }
@@ -281,17 +302,17 @@ async function sendReview() {
 }
 
 /* ---------- التشغيل ---------- */
-function route() {
+function route(keep) {
   const h = (location.hash || '#home').slice(1), v = R[h] ? h : 'home';
-  $('#view').innerHTML = R[v](); document.querySelectorAll('#nav a').forEach(a => a.classList.toggle('on', a.dataset.v === v)); scrollTo(0, 0); closeModal(); document.querySelectorAll('[id^=lv_]').forEach(e => lv(e.id.slice(3))); icons(); cartBar();
+  $('#view').innerHTML = R[v](); document.querySelectorAll('#nav a').forEach(a => a.classList.toggle('on', a.dataset.v === v)); if (!keep) scrollTo(0, 0); closeModal(); document.querySelectorAll('[id^=lv_]').forEach(e => lv(e.id.slice(3))); icons(); cartBar();
   if (v === 'invoice' && fresh) { fresh = false; modal(); }
   if (v === 'checkout') $('#f_l')?.addEventListener('change', e => { $('#f_li').textContent = L.find(l => l.id === e.target.value)?.instructions || ''; });
 }
-addEventListener('hashchange', route);
+addEventListener('hashchange', () => route());
 (async () => {
-  saveCart();
-  const [p, o, l, s, rv] = await Promise.all([sb.from('products').select('*').order('sort_order').order('created_at'), sb.from('offers').select('*'), sb.from('pickup_locations').select('*').order('sort_order'), sb.rpc('get_public_settings'), sb.rpc('get_public_reviews', { p_limit: 12 })]);
-  P = p.data || []; O = o.data || []; L = l.data || []; if (s.data) S = s.data; RV = rv.data || [];
+  saveCart(); $('#view').innerHTML = '<div class="grid"><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>';
+  const [p, o, l, s, rv, cat] = await Promise.all([sb.from('products').select('*').order('sort_order').order('created_at'), sb.from('offers').select('*'), sb.from('pickup_locations').select('*').order('sort_order'), sb.rpc('get_public_settings'), sb.rpc('get_public_reviews', { p_limit: 12 }), sb.from('product_categories').select('*').order('sort_order')]);
+  P = p.data || []; O = o.data || []; L = l.data || []; if (s.data) S = s.data; RV = rv.data || []; C = (cat && cat.data) || []; C = C.filter(c => P.some(x => x.category_id === c.id));
   cart = cart.filter(c => P.some(x => x.id === c.pid)); saveCart(); route();
 })();
 </script>
