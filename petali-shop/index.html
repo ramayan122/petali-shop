@@ -173,6 +173,7 @@ nav a{font-weight:500}nav a.on{background:var(--pe)}
 .inv{background:#fff}.inv .nt p+p{margin-top:6px}
 .modal .box{background:var(--card)}
 #cnt .cnts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:12px}.cn{display:flex;align-items:center;gap:8px;padding:8px 16px;border-radius:99px;background:var(--card);border:1.5px solid var(--mvl);color:var(--tx2);font-size:.9rem}.cn b{color:var(--mv);font-size:1.05rem}.cn .lucide{width:18px;height:18px;color:var(--mv)}
+.thumbs{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}.thumbs .th{width:64px;height:64px;border-radius:12px;border:2px solid var(--mvl);background:var(--pe) center/cover;cursor:pointer;padding:0}.thumbs .th.on{border-color:var(--mv)}
 @media print{header,footer,.cbar,.buybar{display:none}}
 </style>
 </head>
@@ -190,6 +191,12 @@ const sb = supabase.createClient(CFG.url, CFG.key);
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
 const money = n => (Math.round(Number(n || 0) * 100) / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ر.س';
+const mixOf = v => Array.isArray(v && v.mix) ? v.mix.filter(c => /^#[0-9a-f]{6}$/i.test(c)) : [];
+const swBg = v => { const m = mixOf(v); if (m.length < 2) return (v && v.hex) || '#ccc'; const n = m.length; return 'linear-gradient(135deg,' + m.map((c, i) => `${c} ${Math.round(100 * i / n)}% ${Math.round(100 * (i + 1) / n)}%`).join(',') + ')'; };
+let gimg = '';
+const pImgs = p => { const a = Array.isArray(p.images) ? p.images.filter(Boolean) : []; if (p.image_path && !a.includes(p.image_path)) a.unshift(p.image_path); return a; };
+const optImg = (p, o) => { let r = ''; (p.options || []).forEach(g => { const v = g.values.find(x => x.label === (o || {})[g.name]); if (v && v.image) r = v.image; }); return r; };
+const selImg = p => { const o = {}; (p.options || []).forEach((g, gi) => { const vs = g.values.filter(v => v.available !== false); if (vs.length) o[g.name] = vs[Math.min(psel[gi] || 0, vs.length - 1)].label; }); return gimg || optImg(p, o) || p.image_path || ''; };
 const imgUrl = p => p ? sb.storage.from('product-images').getPublicUrl(p).data.publicUrl : '';
 const ST = { awaiting_confirmation: 'بانتظار التأكيد', confirmed: 'تم تأكيد طلبك', in_progress: 'قيد التنفيذ', ready: 'جاهز للاستلام', completed: 'مكتمل', cancelled: 'ملغي' };
 let RT = {}, me = null, amode = 'login', AO = [], rd = {}, selLoc = '', nearId = '', dist = {}, PRC = {};
@@ -226,7 +233,7 @@ function lv(id) {
   const bt = $('#bb_total'); if (bt) bt.textContent = money(tot);
 }
 function stp(id, d) { const i = $('#q_' + id); i.value = Math.max(1, Math.min(1000, (parseInt(i.value) || 1) + d)); lv(id); }
-function pick(gi, vi) { psel[gi] = vi; route(true); }
+function pick(gi, vi) { psel[gi] = vi; gimg = ''; route(true); }
 
 const ICONS = {
 'plus':'<path d="M5 12h14"/><path d="M12 5v14"/>','minus':'<path d="M5 12h14"/>','x':'<path d="M18 6 6 18"/><path d="m6 6 12 12"/>','check':'<path d="M20 6 9 17l-5-5"/>',
@@ -326,10 +333,10 @@ const R = {
   product(id) {
     const p = P.find(x => x.id === id); if (!p) return `<div class="card center" style="padding:36px 16px"><h3>هذا المنتج غير متاح</h3><a class="btn" style="display:inline-block;margin-top:12px" href="#products">تصفح المنتجات</a></div>`;
     const cat = C.find(c => c.id === p.category_id), rel = P.filter(x => x.id !== p.id && p.category_id && x.category_id === p.category_id).slice(0, 4);
-    const ogs = (p.options || []).map((g, gi) => { const vs = g.values.filter(v => v.available !== false); if (!vs.length) return ''; const si = Math.min(psel[gi] || 0, vs.length - 1), col = g.type === 'color' || vs.some(v => v.hex);
-      return `<div class="og"><div class="olab">${esc(g.name)}: <b>${esc(vs[si].label)}</b></div><div class="${col ? 'sws' : 'chs'}">${vs.map((v, vi) => col ? `<button class="swb ${vi === si ? 'on' : ''}" style="--c:${v.hex || '#ccc'}" onclick="pick(${gi},${vi})" aria-label="${esc(v.label)}" title="${esc(v.label)}"></button>` : `<button class="chb ${vi === si ? 'on' : ''}" onclick="pick(${gi},${vi})">${esc(v.label)}</button>`).join('')}</div></div>`; }).join('');
+    const ogs = (p.options || []).map((g, gi) => { const vs = g.values.filter(v => v.available !== false); if (!vs.length) return ''; const si = Math.min(psel[gi] || 0, vs.length - 1), col = g.type === 'color' || vs.some(v => v.hex || mixOf(v).length);
+      return `<div class="og"><div class="olab">${esc(g.name)}: <b>${esc(vs[si].label)}</b></div><div class="${col ? 'sws' : 'chs'}">${vs.map((v, vi) => col ? `<button class="swb ${vi === si ? 'on' : ''}" style="--c:${swBg(v)}" onclick="pick(${gi},${vi})" aria-label="${esc(v.label)}" title="${esc(v.label)}"></button>` : `<button class="chb ${vi === si ? 'on' : ''}" onclick="pick(${gi},${vi})">${esc(v.label)}</button>`).join('')}</div></div>`; }).join('');
     return `<nav class="crumb"><a href="#home">الرئيسية</a>${ic('chevron-left')}<a href="#products">المنتجات</a>${cat ? ic('chevron-left') + `<a href="#products" onclick="pc='${cat.id}'">${esc(cat.name)}</a>` : ''}${ic('chevron-left')}<span>${esc(p.name)}</span></nav>
-    <div class="pdp"><div class="pg"><div class="pimg big" style="${p.image_path ? `background-image:url('${imgUrl(p.image_path)}')` : ''}">${p.image_path ? '' : ic('image')}</div></div>
+    <div class="pdp"><div class="pg">${(() => { const cur = selImg(p), im = pImgs(p); return `<div class="pimg big" style="${cur ? `background-image:url('${imgUrl(cur)}')` : ''}">${cur ? '' : ic('image')}</div>${im.length > 1 ? `<div class="thumbs">${im.map(x => `<button class="th ${x === cur ? 'on' : ''}" style="background-image:url('${imgUrl(x)}')" onclick="gimg='${x}';route(true)" aria-label="صورة"></button>`).join('')}</div>` : ''}`; })()}</div>
     <div class="pi"><h1>${esc(p.name)}</h1><div id="prs">${rateTag(p)}</div>${cat ? `<div class="sub">${esc(cat.name)}</div>` : ''}<div class="pprice" id="lv_${p.id}"></div>${tiers(p)}
     ${p.description ? `<p class="pdesc">${esc(p.description)}</p>` : ''}${ogs}
     <div class="og"><div class="olab">الكمية</div><div class="stp"><button onclick="stp('${p.id}',-1)" aria-label="إنقاص">${ic('minus')}</button><input type="number" min="1" max="1000" value="${pq}" id="q_${p.id}" oninput="lv('${p.id}')"><button onclick="stp('${p.id}',1)" aria-label="زيادة">${ic('plus')}</button></div></div>
@@ -343,8 +350,8 @@ const R = {
     const c = calc(); if (!c.lines.length) return `<h1>السلة</h1><div class="card center" style="padding:36px 16px"><div class="big">${ic('shopping-bag')}</div><h3>سلتك فارغة</h3><p class="sub">أضف منتجات من المتجر وستظهر هنا.</p><a class="btn" style="display:inline-block;margin-top:12px" href="#products">تصفح المنتجات</a></div>`;
     const n = c.lines.reduce((s, l) => s + l.q, 0);
     return `<h1>السلة <span class="sub">(${n} قطعة)</span></h1><div class="cartgrid"><div><div class="card">${c.lines.map(l => { const mq = l.p.wholesale_min_qty || S.wholesale_min_qty, nud = l.p.wholesale_price != null && l.q < mq ? `<div class="nudge">أضف ${mq - l.q} قطع ليصبح سعر القطعة ${money(l.p.wholesale_price)}</div>` : '';
-      const chips = Object.entries(l.opts || {}).map(([k, v]) => { const hx = ((l.p.options || []).find(g => g.name === k)?.values.find(x => x.label === v) || {}).hex; return `<span class="chp">${hx ? `<i style="background:${hx}"></i>` : ''}${esc(k)}: ${esc(v)}</span>`; }).join('');
-      return `<div class="cl"><a href="#p-${l.p.id}" class="pimg" style="${l.p.image_path ? `background-image:url('${imgUrl(l.p.image_path)}')` : ''}">${l.p.image_path ? '' : ic('image')}</a>
+      const chips = Object.entries(l.opts || {}).map(([k, v]) => { const vv = (l.p.options || []).find(g => g.name === k)?.values.find(x => x.label === v) || {}, hx = vv.hex || mixOf(vv).length; return `<span class="chp">${hx ? `<i style="background:${swBg(vv)}"></i>` : ''}${esc(k)}: ${esc(v)}</span>`; }).join('');
+      return `<div class="cl"><a href="#p-${l.p.id}" class="pimg" style="${(optImg(l.p, l.opts) || l.p.image_path) ? `background-image:url('${imgUrl(optImg(l.p, l.opts) || l.p.image_path)}')` : ''}">${(optImg(l.p, l.opts) || l.p.image_path) ? '' : ic('image')}</a>
       <div class="cb"><div class="ctop"><a href="#p-${l.p.id}"><b>${esc(l.p.name)}</b></a><b class="lt">${money(l.t)}</b></div><div class="chips">${chips}</div><div class="sub">${money(l.u)} للقطعة${l.d ? ' · خصم ' + money(l.d) : ''}</div>${nud}
       <div class="crow"><div class="stp"><button onclick="chg(${l.i},-1)" aria-label="إنقاص">${ic('minus')}</button><input type="number" min="1" max="1000" value="${l.q}" onchange="setQ(${l.i},this.value)" aria-label="الكمية"><button onclick="chg(${l.i},1)" aria-label="زيادة">${ic('plus')}</button></div><button class="lnk" onclick="rm(${l.i})">${ic('trash-2')} حذف</button></div></div></div>`; }).join('')}
       ${c.gifts.map(g => `<div class="cl"><div class="pimg">${ic('gift')}</div><div class="cb"><div class="ctop"><b>${esc(g.name)}</b><b class="lt">مجانًا</b></div><div class="sub">هدية مجانية × ${g.q}</div></div></div>`).join('')}</div>
@@ -554,7 +561,7 @@ async function loadPR(id) {
 
 /* ---------- التشغيل ---------- */
 function route(keep) {
-  const h = (location.hash || '#home').slice(1); let v, a; if (h.startsWith('p-')) { v = 'product'; a = h.slice(2); if (a !== curP) { curP = a; psel = {}; pq = 1; } } else v = R[h] ? h : 'home';
+  const h = (location.hash || '#home').slice(1); let v, a; if (h.startsWith('p-')) { v = 'product'; a = h.slice(2); if (a !== curP) { curP = a; psel = {}; pq = 1; gimg = ''; } } else v = R[h] ? h : 'home';
   $('#view').innerHTML = R[v](a); document.querySelectorAll('#nav a,.hact a').forEach(x => x.classList.toggle('on', x.dataset.v === (v === 'product' ? 'products' : v))); if (!keep) scrollTo(0, 0); closeModal(); document.querySelectorAll('[id^=lv_]').forEach(e => lv(e.id.slice(3))); icons(); cartBar();
   if (v === 'invoice' && fresh) { fresh = false; modal(); }
   if (v === 'checkout') { if (!L.some(l => l.id === selLoc)) selLoc = L[0]?.id || ''; const e = $('#locs'); if (e) e.innerHTML = locCards(); if (me) { $('#f_n').value = me.name; $('#f_p').value = me.phone; } }
