@@ -175,6 +175,7 @@ nav a{font-weight:500}nav a.on{background:var(--pe)}
 #cnt .cnts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:12px}.cn{display:flex;align-items:center;gap:8px;padding:8px 16px;border-radius:99px;background:var(--card);border:1.5px solid var(--mvl);color:var(--tx2);font-size:.9rem}.cn b{color:var(--mv);font-size:1.05rem}.cn .lucide{width:18px;height:18px;color:var(--mv)}
 .thumbs{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}.thumbs .th{width:64px;height:64px;border-radius:12px;border:2px solid var(--mvl);background:var(--pe) center/cover;cursor:pointer;padding:0}.thumbs .th.on{border-color:var(--mv)}
 @media print{header,footer,.cbar,.buybar{display:none}}
+.tl{position:relative;margin-top:8px}.tls{display:flex;gap:12px;padding:0 0 16px;position:relative;opacity:.55}.tls i{flex:none;width:26px;height:26px;border-radius:99px;background:var(--mvl);display:grid;place-items:center;color:#fff;font-style:normal;z-index:1}.tls:not(:last-child):before{content:"";position:absolute;inset-inline-start:12px;top:26px;bottom:0;width:2px;background:var(--mvl)}.tls.done{opacity:1}.tls.done i{background:var(--mv)}.tls.now{opacity:1}.tls.now i{background:var(--mv);box-shadow:0 0 0 5px var(--mvl)}.tls i svg{width:15px;height:15px}.upd{padding:8px 0;border-top:1px dashed var(--mvl)}.sold{position:absolute;inset:auto 8px 8px auto;background:#5a4a42;color:#fff;border-radius:99px;padding:3px 10px;font-size:.75rem}.left{background:#fff;color:var(--mv);border:1px solid var(--mv)}.pc.soldout .pimg{filter:grayscale(.7);opacity:.7}.btn[disabled]{opacity:.6;cursor:not-allowed}
 </style>
 </head>
 <body>
@@ -221,10 +222,13 @@ const optText = o => Object.entries(o || {}).map(([k, v]) => esc(k) + ': ' + esc
 /* ---------- المنتجات ---------- */
 const tiers = p => { if (p.wholesale_price == null) return ''; const m = p.wholesale_min_qty || S.wholesale_min_qty; return `<div class="tiers"><span>1 – ${m - 1} قطع<b>${money(p.price)}</b></span><span class="hot">من ${m} قطعة<b>${money(p.wholesale_price)}</b></span></div>`; };
 const rateTag = p => RT[p.id] ? `<div class="rate">${ic('star')} ${RT[p.id].avg} <span>(${RT[p.id].count})</span></div>` : '';
+const soldOut = p => p.stock_qty != null && p.stock_qty <= 0, maxQ = p => p.stock_qty != null ? Math.max(0, p.stock_qty) : 1000;
+const stockBdg = p => soldOut(p) ? '<span class="sold">نفدت الكمية</span>' : p.stock_qty != null && p.stock_qty <= 5 ? `<span class="sold left">متبقي ${p.stock_qty}</span>` : '';
+const addBtn = (p, c) => soldOut(p) ? `<button class="btn ${c}" disabled>نفدت الكمية</button>` : `<button class="btn ${c}" onclick="addCart('${p.id}')">${ic('shopping-bag')} إضافة للسلة</button>`;
 function card(p) {
   const pcs = O.filter(o => o.kind === 'percent' && (!o.applies_to_product || o.applies_to_product === p.id)).map(o => Number(o.value)), cn = (C.find(c => c.id === p.category_id) || {}).name;
   const g0 = (p.options || []).find(g => g.type === 'color' || g.values.some(v => v.hex)), dots = g0 ? g0.values.filter(v => v.available !== false && v.hex).slice(0, 6).map(v => `<i class="dot" style="background:${v.hex}" title="${esc(v.label)}"></i>`).join('') : '';
-  return `<a class="pc" href="#p-${p.id}"><div class="pimg" style="${p.image_path ? `background-image:url('${imgUrl(p.image_path)}')` : ''}">${p.image_path ? '' : ic('image')}${pcs.length ? `<span class="bdg">خصم ${Math.max(...pcs)}%</span>` : ''}</div>
+  return `<a class="pc ${soldOut(p) ? 'soldout' : ''}" href="#p-${p.id}"><div class="pimg" style="${p.image_path ? `background-image:url('${imgUrl(p.image_path)}')` : ''}">${p.image_path ? '' : ic('image')}${stockBdg(p)}${pcs.length ? `<span class="bdg">خصم ${Math.max(...pcs)}%</span>` : ''}</div>
   <div class="pb"><div class="pn">${esc(p.name)}</div>${rateTag(p)}${cn ? `<div class="sub">${esc(cn)}</div>` : ''}<div class="prow"><b class="price">${money(p.price)}</b><span class="dots">${dots}</span></div>${p.wholesale_price != null ? `<div class="sub">جملة من ${p.wholesale_min_qty || S.wholesale_min_qty} قطع: ${money(p.wholesale_price)}</div>` : ''}</div></a>`;
 }
 function lv(id) {
@@ -305,8 +309,11 @@ function cartBar() {
 function addCart(id) {
   const p = P.find(x => x.id === id), q = Math.max(1, parseInt($('#q_' + id)?.value) || pq || 1), opts = {};
   (p.options || []).forEach((g, gi) => { const vs = g.values.filter(v => v.available !== false); if (vs.length) opts[g.name] = vs[Math.min(psel[gi] || 0, vs.length - 1)].label; });
-  const k = JSON.stringify(opts), ex = cart.find(c => c.pid === id && JSON.stringify(c.opts) === k);
-  if (ex) ex.qty = Math.min(1000, ex.qty + q); else cart.push({ pid: id, qty: q, opts });
+  if (soldOut(p)) return toast('نفدت الكمية من هذا المنتج');
+  const k = JSON.stringify(opts), ex = cart.find(c => c.pid === id && JSON.stringify(c.opts) === k), inCart = cart.filter(c => c.pid === id).reduce((t, c) => t + c.qty, 0), mx = maxQ(p);
+  if (inCart + q > mx) { if (inCart >= mx) return toast('وصلت للكمية المتاحة (' + mx + ')'); toast('الكمية المتاحة ' + mx + ' فقط، عدّلناها لك'); }
+  const qq = Math.min(q, mx - inCart);
+  if (ex) ex.qty = Math.min(1000, ex.qty + qq); else cart.push({ pid: id, qty: qq, opts });
   saveCart(); toast('أضيف إلى السلة');
 }
 
@@ -340,11 +347,11 @@ const R = {
     <div class="pi"><h1>${esc(p.name)}</h1><div id="prs">${rateTag(p)}</div>${cat ? `<div class="sub">${esc(cat.name)}</div>` : ''}<div class="pprice" id="lv_${p.id}"></div>${tiers(p)}
     ${p.description ? `<p class="pdesc">${esc(p.description)}</p>` : ''}${ogs}
     <div class="og"><div class="olab">الكمية</div><div class="stp"><button onclick="stp('${p.id}',-1)" aria-label="إنقاص">${ic('minus')}</button><input type="number" min="1" max="1000" value="${pq}" id="q_${p.id}" oninput="lv('${p.id}')"><button onclick="stp('${p.id}',1)" aria-label="زيادة">${ic('plus')}</button></div></div>
-    <button class="btn big" onclick="addCart('${p.id}')">${ic('shopping-bag')} إضافة للسلة</button>
-    <ul class="info"><li>${ic('heart')} صُنع يدويًا بعناية</li><li>${ic('map-pin')} الاستلام من مواقعنا</li><li>${ic('message-circle')} تأكيد الطلب عبر واتساب</li></ul></div></div>
+    ${p.stock_qty != null && p.stock_qty > 0 && p.stock_qty <= 5 ? `<div class="sub" style="margin-bottom:6px">متبقي ${p.stock_qty} فقط</div>` : ''}${addBtn(p, 'big')}
+    <ul class="info"><li>${ic('heart')} صُنع يدويًا بعناية</li><li>${ic('map-pin')} الاستلام من أحد موقعين في مكة المكرمة</li><li>${ic('wallet')} الدفع نقدًا عند الاستلام</li><li>${ic('message-circle')} تأكيد الطلب عبر واتساب</li></ul></div></div>
     <h2>تقييمات العملاء</h2><div id="prv"><div class="skel" style="height:90px"></div></div>
     ${rel.length ? `<h2>منتجات مشابهة</h2><div class="pgrid">${rel.map(card).join('')}</div>` : ''}
-    <div class="buybar"><div><div class="sub">الإجمالي</div><b id="bb_total"></b></div><button class="btn" onclick="addCart('${p.id}')">${ic('shopping-bag')} إضافة للسلة</button></div>`;
+    <div class="buybar"><div><div class="sub">الإجمالي</div><b id="bb_total"></b></div>${addBtn(p, '')}</div>`;
   },
   cart() {
     const c = calc(); if (!c.lines.length) return `<h1>السلة</h1><div class="card center" style="padding:36px 16px"><div class="big">${ic('shopping-bag')}</div><h3>سلتك فارغة</h3><p class="sub">أضف منتجات من المتجر وستظهر هنا.</p><a class="btn" style="display:inline-block;margin-top:12px" href="#products">تصفح المنتجات</a></div>`;
@@ -357,7 +364,7 @@ const R = {
       ${c.gifts.map(g => `<div class="cl"><div class="pimg">${ic('gift')}</div><div class="cb"><div class="ctop"><b>${esc(g.name)}</b><b class="lt">مجانًا</b></div><div class="sub">هدية مجانية × ${g.q}</div></div></div>`).join('')}</div>
       <div class="row" style="justify-content:space-between"><a class="lnk g" href="#products">${ic('arrow-right')} متابعة التسوق</a><button class="lnk" onclick="clearCart()">${ic('trash-2')} تفريغ السلة</button></div></div>
       <aside class="card sumc"><h3>ملخص الطلب</h3><div class="tot"><span>المجموع</span><span>${money(c.sub)}</span></div>${c.fx ? `<div class="tot"><span>خصم العرض</span><span>− ${money(c.fx)}</span></div>` : ''}<div class="tot big"><span>الإجمالي</span><span>${money(c.total)}</span></div>
-      <div class="sub" style="margin:8px 0 14px">السعر النهائي يؤكَّد عند إتمام الطلب. الاستلام من مواقعنا، والتوصيل غير متوفر حاليًا.</div><a class="btn big" style="display:block;text-align:center" href="#checkout">متابعة الطلب</a></aside></div>`;
+      <div class="sub" style="margin:8px 0 14px">السعر النهائي يؤكَّد عند إتمام الطلب. الدفع نقدًا عند الاستلام فقط، والاستلام من أحد موقعينا في مكة المكرمة.</div><a class="btn big" style="display:block;text-align:center" href="#checkout">متابعة الطلب</a></aside></div>`;
   },
   checkout() {
     const c = calc(); if (!c.lines.length) { location.hash = '#cart'; return ''; }
@@ -365,7 +372,7 @@ const R = {
     <div class="card scal"><label>الاسم <b class="rq">*</b></label><input id="f_n" maxlength="80" autocomplete="name" onblur="fv('n')"><div class="fe" id="e_n"></div>
     <label>رقم الجوال (واتساب) <b class="rq">*</b></label><input id="f_p" type="tel" inputmode="tel" dir="ltr" style="text-align:right" autocomplete="tel" onblur="fv('p')"><div class="hint">نحتاج رقمك لتأكيد الطلب عبر واتساب ولتتبع طلبك.</div><div class="fe" id="e_p"></div>
     <label>مكان الاستلام <b class="rq">*</b></label>${L.some(l => l.lat != null && l.lng != null) ? `<button type="button" class="btn soft near" onclick="findNear()">${ic('navigation')} حدّد الموقع الأقرب لي</button>` : ''}<div id="locs">${locCards()}</div>
-    <div class="dis" style="margin-top:12px">${ic('truck')} التوصيل — غير متوفر حاليًا، قريبًا</div>
+    <div class="dis" style="margin-top:12px">${ic('wallet')} الدفع نقدًا عند الاستلام فقط · الاستلام من أحد موقعينا في مكة المكرمة</div>
     <label>ملاحظات (اختياري)</label><textarea id="f_t" rows="2" maxlength="500"></textarea></div>
     <details class="card sum"><summary><span>ملخص الطلب (${c.lines.length + c.gifts.length} أصناف)</span><b>${money(c.total)}</b></summary>${c.lines.map(l => `<div class="tot"><span>${esc(l.p.name)} × ${l.q}<div class="sub">${optText(l.opts)}</div></span><span>${money(l.t)}</span></div>`).join('')}${c.gifts.map(g => `<div class="tot"><span>${esc(g.name)} × ${g.q} (هدية)</span><span>مجانًا</span></div>`).join('')}${c.fx ? `<div class="tot"><span>خصم العرض</span><span>− ${money(c.fx)}</span></div>` : ''}</details>
     <div class="soft-note">بعد إرسال الطلب يتواصل معك حساب بيتالي عبر واتساب لتأكيد طلبك، ثم نتفق معك على الوقت وتفاصيل الاستلام. احتفظ بالفاتورة من فضلك.</div>
@@ -397,7 +404,7 @@ function inv(o) {
   <table><tr><th>المنتج</th><th style="text-align:center">الكمية</th><th style="text-align:end">المبلغ</th></tr>
   ${o.items.map(i => `<tr><td><b>${esc(i.name)}</b><div class="sub">${optText(i.options)}${i.discount > 0 ? ` · خصم ${money(i.discount)}` : ''}</div></td><td style="text-align:center">${i.quantity}</td><td class="n">${i.is_gift ? 'هدية' : money(i.line_total)}</td></tr>`).join('')}</table>
   <div style="margin-top:10px"><div class="tot"><span>المجموع</span><span>${money(o.subtotal)}</span></div>${Number(o.discount_total) > 0 ? `<div class="tot"><span>الخصومات</span><span>− ${money(o.discount_total)}</span></div>` : ''}<div class="tot big"><span>الإجمالي</span><span>${money(o.total)}</span></div></div>
-  <div class="nt"><p>يتواصل معك حساب بيتالي عبر واتساب لتأكيد طلبك.</p>${o.deposit_may_be_required ? '<p>قد نطلب عربونًا لتأكيد الطلبات الكبيرة.</p>' : ''}<p>يرجى حفظ هذه الفاتورة، فستُطلب لتأكيد الطلب.</p><p>سنتواصل معك لتحديد الوقت وتفاصيل الاستلام.</p>${o.pickup_instructions ? `<p>${esc(o.pickup_instructions)}</p>` : ''}</div>
+  <div class="nt"><p>يتواصل معك حساب بيتالي عبر واتساب لتأكيد طلبك.</p>${o.deposit_may_be_required ? '<p>قد نطلب عربونًا لتأكيد الطلبات الكبيرة.</p>' : ''}<p>يرجى حفظ هذه الفاتورة، فستُطلب لتأكيد الطلب.</p><p>سنتواصل معك لتحديد الوقت وتفاصيل الاستلام.</p><p>الدفع نقدًا عند الاستلام فقط.</p>${o.pickup_instructions ? `<p>${esc(o.pickup_instructions)}</p>` : ''}</div>
   <div class="center sub" style="margin-top:14px">شكرًا لاختيارك بيتالي</div></div></div>`;
 }
 
@@ -431,13 +438,14 @@ function findNear() {
 }
 
 /* ---------- الإجراءات ---------- */
-function chg(i, d) { cart[i].qty = Math.max(1, Math.min(1000, cart[i].qty + d)); saveCart(); route(true); }
-function setQ(i, v) { cart[i].qty = Math.max(1, Math.min(1000, parseInt(v) || 1)); saveCart(); route(true); }
+function capQ(i, q) { const p = P.find(x => x.id === cart[i].pid), others = cart.reduce((t, c, k) => t + (k !== i && c.pid === cart[i].pid ? c.qty : 0), 0), mx = p ? Math.max(1, maxQ(p) - others) : 1000; if (q > mx) toast('الكمية المتاحة ' + (mx + others) + ' فقط'); return Math.max(1, Math.min(1000, mx, q)); }
+function chg(i, d) { cart[i].qty = capQ(i, cart[i].qty + d); saveCart(); route(true); }
+function setQ(i, v) { cart[i].qty = capQ(i, parseInt(v) || 1); saveCart(); route(true); }
 function toastU(msg, fn) { undoFn = fn; const e = $('#toast'); e.innerHTML = esc(msg) + '<button onclick="doUndo()">تراجع</button>'; e.className = 'show act'; clearTimeout(e._t); e._t = setTimeout(() => { e.className = ''; undoFn = null; }, 6000); }
 function doUndo() { if (undoFn) { undoFn(); undoFn = null; } $('#toast').className = ''; }
 function rm(i) { const it = cart.splice(i, 1)[0]; saveCart(); route(true); toastU('تم حذف المنتج من السلة', () => { cart.splice(i, 0, it); saveCart(); route(true); }); }
 function clearCart() { const old = cart.slice(); cart = []; saveCart(); route(true); toastU('تم تفريغ السلة', () => { cart = old; saveCart(); route(true); }); }
-const MSG = { invalid_name: 'اكتب اسمك من فضلك.', invalid_phone: 'رقم التواصل غير صحيح.', invalid_location: 'اختر مكان استلام متاحًا.', product_unavailable: 'أحد المنتجات لم يعد متاحًا، راجع السلة.', invalid_qty: 'الكمية غير صحيحة.' };
+const MSG = { invalid_name: 'اكتب اسمك من فضلك.', invalid_phone: 'رقم التواصل غير صحيح.', invalid_location: 'اختر مكان استلام متاحًا.', product_unavailable: 'أحد المنتجات لم يعد متاحًا، راجع السلة.', invalid_qty: 'الكمية غير صحيحة.', insufficient_stock: 'الكمية المتاحة من أحد المنتجات لا تكفي، راجع السلة وعدّلها.' };
 const errMsg = e => { const k = Object.keys(MSG).find(k => (e.message || '').includes(k)); return k ? MSG[k] : 'تعذّر إتمام العملية، حاول مرة أخرى.'; };
 function fv(k) { const el = $('#f_' + k), e = $('#e_' + k), v = el.value.trim(); let m = ''; if (k === 'n' && v.length < 2) m = 'اكتب اسمك من فضلك'; if (k === 'p' && v.replace(/\D/g, '').length < 8) m = 'رقم الجوال غير مكتمل'; e.textContent = m; el.classList.toggle('bad', !!m); return !m; }
 async function submit() {
@@ -447,19 +455,27 @@ async function submit() {
   busy = false; if (error) { $('#sendbtn').disabled = false; return $('#err').textContent = errMsg(error); }
   last = data; fresh = true; cart = []; saveCart(); location.hash = '#invoice';
 }
+const STG0 = [['تم استلام طلبك', 'وصلنا طلبك وسيتم مراجعته'], ['تمت المراجعة والتأكيد', 'راجعنا طلبك وأكدناه'], ['قيد التجهيز', 'نعمل على تجهيز طلبك بكل حب'], ['اكتمل التجهيز', 'انتهينا من تجهيز كل القطع'], ['جاهز للاستلام', 'طلبك جاهز، سنتواصل معك لتحديد الاستلام'], ['تم استلام الطلب', 'نتمنى أن ينال إعجابك'], ['اكتب تقييمك', 'رأيك يهمنا ويساعدنا نتطور']];
+const fdate = d => d ? new Date(d).toLocaleString('ar-u-ca-gregory-nu-latn', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
 async function track() {
-  const { data, error } = await sb.rpc('track_order', { p_order_no: $('#t_n').value, p_phone: $('#t_p').value });
+  let r = await sb.rpc('track_order_v2', { p_order_no: $('#t_n').value, p_phone: $('#t_p').value });
+  if (r.error) r = await sb.rpc('track_order', { p_order_no: $('#t_n').value, p_phone: $('#t_p').value });
+  const { data, error } = r;
   if (error) return $('#err').textContent = 'تعذّر البحث، حاول مرة أخرى.'; if (!data) { $('#res').innerHTML = ''; return $('#err').textContent = 'لم نجد طلبًا بهذه البيانات، تأكد من الرقم وحاول مرة أخرى.'; }
-  $('#err').textContent = ''; last = data; const k = ['awaiting_confirmation', 'confirmed', 'in_progress', 'ready', 'completed'], at = k.indexOf(data.status);
-  $('#res').innerHTML = `<div class="card scal"><div class="row"><h3 class="grow">${esc(data.customer_name)}</h3><span class="tag">${ST[data.status]}</span></div>
-  ${data.status === 'cancelled' ? '<p class="sub">تم إلغاء هذا الطلب.</p>' : `<div class="steps2">${['التأكيد', 'تم التأكيد', 'التنفيذ', 'جاهز', 'مكتمل'].map((t, i) => `<div class="${i <= at ? 'on' : ''}"><i>${i <= at ? ic('check') : ''}</i>${t}</div>`).join('')}</div>
-  ${data.status === 'in_progress' ? `<div class="bar"><i style="width:${data.progress_percent}%"></i></div><div class="sub center">اكتمل ${data.progress_percent}% من طلبك</div>` : ''}`}
-  <div class="row" style="margin-top:12px"><a class="btn soft sm" href="#invoice">عرض الفاتورة</a></div></div>`;
+  $('#err').textContent = ''; last = data;
+  const stg = Array.isArray(data.stages) && data.stages.length ? data.stages.map(s => [s.title, s.desc]) : STG0, N = stg.length, reviewed = !!data.review, cancelled = data.status === 'cancelled';
+  const base = { awaiting_confirmation: 0, confirmed: 1, in_progress: data.progress_percent >= 100 ? 3 : 2, ready: 4, completed: reviewed ? 6 : 5 }[data.status] ?? 0, cur = Math.min(base, N - 1);
   const started = ['in_progress', 'ready', 'completed'].includes(data.status), real = data.items.filter(i => !i.is_gift), tq = real.reduce((n, i) => n + i.quantity, 0), td = real.reduce((n, i) => n + Number(i.done || 0), 0), has = data.items.some(i => typeof i.done === 'number');
-  $('#res').insertAdjacentHTML('beforeend', `<div class="card scal"><div class="row"><h3 class="grow">${ic('shopping-bag')} تفاصيل طلبك</h3>${started && has ? `<b>${td} من ${tq}</b>` : ''}</div>${started && has ? `<div class="bar" style="margin:4px 0 8px"><i style="width:${tq ? Math.round(100 * td / tq) : 0}%"></i></div>` : ''}
+  $('#res').innerHTML = `<div class="card scal"><div class="row"><div class="grow"><h3>طلب <span dir="ltr">${esc(data.order_no)}</span></h3><div class="sub">${esc(data.customer_name)}</div></div><span class="tag">${cancelled ? 'ملغي' : esc(stg[cur][0])}</span></div>
+  ${data.updated_at ? `<div class="sub" style="margin-top:6px">${ic('clock')} آخر تحديث: ${fdate(data.updated_at)}</div>` : ''}</div>
+  ${cancelled ? '<div class="card scal"><p class="sub">تم إلغاء هذا الطلب.</p></div>' : `<div class="card scal"><h3>مراحل طلبك</h3><div class="tl">${stg.map((s, i) => `<div class="tls ${i < cur ? 'done' : i === cur ? 'now' : ''}"><i>${i < cur ? ic('check') : ''}</i><div><b>${esc(s[0])}</b><div class="sub">${esc(s[1] || '')}</div>${i === cur && data.status === 'in_progress' && has ? `<div class="bar" style="margin-top:6px"><i style="width:${data.progress_percent}%"></i></div><div class="sub">اكتمل ${td} من ${tq} قطعة</div>` : ''}</div></div>`).join('')}</div></div>`}
+  ${Array.isArray(data.updates) && data.updates.length ? `<div class="card scal"><h3>${ic('bell')} تحديثات مهمة</h3>${data.updates.map(u => `<div class="upd"><div class="sub">${fdate(u.created_at)}</div>${esc(u.text)}</div>`).join('')}</div>` : ''}
+  <div class="card scal"><h3>${ic('map-pin')} نقطة الاستلام</h3><b>${esc(data.pickup_location || '')}</b>${data.pickup_address ? `<div class="sub">${esc(data.pickup_address)}</div>` : ''}${data.pickup_map_url ? `<a class="maplink" href="${esc(data.pickup_map_url)}" target="_blank" rel="noopener" style="display:inline-flex;gap:6px;margin-top:8px">${ic('map-pin')} فتح الموقع في الخريطة</a>` : ''}<div class="sub" style="margin-top:6px">الدفع نقدًا عند الاستلام فقط.</div></div>
+  <div class="card scal"><div class="row"><h3 class="grow">${ic('shopping-bag')} تفاصيل طلبك</h3>${started && has ? `<b>${td} من ${tq}</b>` : ''}</div>
   ${data.items.map(i => { const dn = Number(i.done || 0), full = dn >= i.quantity;
-    return `<div class="line"><div class="pimg" style="${i.image_path ? `background-image:url('${imgUrl(i.image_path)}')` : ''}">${i.image_path ? '' : ic('flower-2')}</div><div><b>${esc(i.name)}${i.is_gift ? ' (هدية)' : ''}</b><div class="sub">${optText(i.options)}</div>
-    ${started && has ? `<div class="bar" style="margin-top:6px"><i style="width:${Math.min(100, Math.round(100 * dn / i.quantity))}%"></i></div><div class="sub">${full ? 'جاهزة' : dn ? 'أُنجز ' + dn + ' من ' + i.quantity : 'في الانتظار (' + i.quantity + ' قطع)'}</div>` : `<div class="sub">${i.quantity} قطع</div>`}</div><span>${started && has && full ? ic('check-circle-2') : ''}</span></div>`; }).join('')}</div>`);
+    return `<div class="line"><div class="pimg" style="${i.image_path ? `background-image:url('${imgUrl(i.image_path)}')` : ''}">${i.image_path ? '' : ic('flower-2')}</div><div><b>${esc(i.name)}${i.is_gift ? ' (هدية)' : ''}</b><div class="sub">${optText(i.options)}</div><div class="sub">${i.quantity} ${started && has ? '· ' + (full ? 'جاهزة' : dn ? 'أُنجز ' + dn : 'في الانتظار') : 'قطع'}</div></div><span>${started && has && full ? ic('check-circle-2') : ''}</span></div>`; }).join('')}
+  <div class="row" style="margin-top:10px"><b class="grow">الإجمالي</b><b>${money(data.total)}</b></div></div>
+  <div class="row" style="margin-top:6px"><a class="btn soft sm" href="#invoice">عرض الفاتورة</a></div>`;
   rate = 0; $('#res').insertAdjacentHTML('beforeend', reviewBox(data)); icons();
 }
 
@@ -571,12 +587,12 @@ function route(keep) {
 addEventListener('hashchange', () => route());
 (async () => {
   $('#cartic').innerHTML = ic('shopping-bag'); $('#trkic').innerHTML = ic('package'); $('#accic').innerHTML = ic('user'); saveCart(); $('#view').innerHTML = '<div class="grid"><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>';
-  const [p, o, l, s, rv, cat, cfg, rt, cn] = await Promise.all([sb.from('products').select('*').is('deleted_at', null).order('sort_order').order('created_at'), sb.from('offers').select('*').is('deleted_at', null), sb.from('pickup_locations').select('*').is('deleted_at', null).order('sort_order'), sb.rpc('get_public_settings'), sb.rpc('get_public_reviews', { p_limit: 12 }), sb.from('product_categories').select('*').order('sort_order'), sb.rpc('get_shop_config'), sb.rpc('get_rating_summary'), (async () => { try { if (!sessionStorage.getItem('petali_pv')) { sessionStorage.setItem('petali_pv', '1'); await sb.rpc('register_visit'); } } catch (e) {} return sb.rpc('get_shop_counters'); })()]);
+  const [p, o, l, s, rv, cat, cfg, rt, cn] = await Promise.all([sb.from('products').select('*').is('deleted_at', null).order('sort_order').order('created_at'), sb.from('offers').select('*').is('deleted_at', null), sb.from('pickup_locations').select('*').is('deleted_at', null).order('sort_order'), sb.rpc('get_public_settings'), sb.rpc('get_public_reviews', { p_limit: 12 }), sb.from('product_categories').select('*').order('sort_order'), sb.rpc('get_shop_config'), sb.rpc('get_rating_summary'), (async () => { let seen = false; try { seen = !!sessionStorage.getItem('petali_pv'); } catch (e) {} if (!seen) { try { const r = await sb.rpc('register_visit'); if (r.error) console.warn('register_visit:', r.error.message); else { try { sessionStorage.setItem('petali_pv', '1'); } catch (e) {} } } catch (e) { console.warn(e); } } return sb.rpc('get_shop_counters'); })()]);
   P = p.data || []; O = o.data || []; L = l.data || []; if (s.data) S = s.data; RV = rv.data || []; C = (cat && cat.data) || []; C = C.filter(c => P.some(x => x.category_id === c.id));
   RT = rt.data || {}; const cf = cfg.data || {}; if (cf.theme) applyTheme(cf.theme); if (!S.home_category && cf.home_category) S.home_category = cf.home_category;
   if (S.home_category) C.sort((a, b) => (b.id === S.home_category) - (a.id === S.home_category));
   drawCounters(cn && cn.data); await loadMe();
-  cart = cart.filter(c => P.some(x => x.id === c.pid)); saveCart(); route();
+  cart = cart.filter(c => { const p = P.find(x => x.id === c.pid); return p && !soldOut(p); }); cart.forEach(c => { const p = P.find(x => x.id === c.pid); if (c.qty > maxQ(p)) c.qty = maxQ(p); }); saveCart(); route();
 })();
 </script>
 </body>
