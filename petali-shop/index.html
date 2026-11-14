@@ -572,7 +572,7 @@ async function loadPR(id) {
   let d = PRC[id]; if (!d) { const r = await sb.rpc('get_product_reviews', { p_product: id, p_limit: 20 }); d = r.error ? null : r.data; if (d) PRC[id] = d; }
   const el = $('#prv'), sm = $('#prs'); if (!el || curP !== id) return;
   if (d && d.count) { if (sm) sm.innerHTML = `<div class="rate">${ic('star')} ${d.avg} <span>(${d.count} تقييم)</span></div>`; el.innerHTML = `<div class="grid">${d.items.map(r => `<div class="card"><div class="rs">${stars(r.rating)}</div><p>${esc(r.comment || '')}</p><div class="sub">— ${esc(r.first_name)}</div></div>`).join('')}</div>`; }
-  else el.innerHTML = '<div class="card center sub">لا توجد تقييمات لهذا المنتج بعد. يمكن لمن استلم طلبه تقييمه من حسابه.</div>';
+  else el.innerHTML = '<div class="card center sub">لا توجد تقييمات لهذا المنتج بعد.</div>';
 }
 
 /* ---------- التشغيل ---------- */
