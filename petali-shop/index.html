@@ -176,6 +176,13 @@ nav a{font-weight:500}nav a.on{background:var(--pe)}
 .thumbs{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}.thumbs .th{width:64px;height:64px;border-radius:12px;border:2px solid var(--mvl);background:var(--pe) center/cover;cursor:pointer;padding:0}.thumbs .th.on{border-color:var(--mv)}
 @media print{header,footer,.cbar,.buybar{display:none}}
 .tl{position:relative;margin-top:8px}.tls{display:flex;gap:12px;padding:0 0 16px;position:relative;opacity:.55}.tls i{flex:none;width:26px;height:26px;border-radius:99px;background:var(--mvl);display:grid;place-items:center;color:#fff;font-style:normal;z-index:1}.tls:not(:last-child):before{content:"";position:absolute;inset-inline-start:12px;top:26px;bottom:0;width:2px;background:var(--mvl)}.tls.done{opacity:1}.tls.done i{background:var(--mv)}.tls.now{opacity:1}.tls.now i{background:var(--mv);box-shadow:0 0 0 5px var(--mvl)}.tls i svg{width:15px;height:15px}.upd{padding:8px 0;border-top:1px dashed var(--mvl)}.sold{position:absolute;inset:auto 8px 8px auto;background:#5a4a42;color:#fff;border-radius:99px;padding:3px 10px;font-size:.75rem}.left{background:#fff;color:var(--mv);border:1px solid var(--mv)}.pc.soldout .pimg{filter:grayscale(.7);opacity:.7}.btn[disabled]{opacity:.6;cursor:not-allowed}
+.sbar{padding:8px 14px;text-align:center;font-size:.88rem;background:var(--mvl);color:var(--mv);position:relative}.sbar.closed{background:#7a3b2e;color:#fff;font-weight:700;padding:12px}.sbar.done{background:#f3e5d3}.sbar button{position:absolute;inset-inline-end:10px;top:4px;background:none;border:0;font-size:1.2rem;color:inherit;cursor:pointer}.sbar svg{width:16px;height:16px;vertical-align:-3px}
+.pg .pimg.big{position:relative;overflow:hidden}.gfade{position:absolute;inset:0;background:center/cover;opacity:1;transition:opacity .35s ease;pointer-events:none}
+.thumbs{display:flex;gap:8px;overflow-x:auto;padding:2px 0 6px}.th{flex:none;width:56px;height:56px;border-radius:12px;border:2px solid transparent;background:center/cover;cursor:pointer;filter:blur(.6px);opacity:.65;transition:.25s}.th.on{filter:none;opacity:1;border-color:var(--mv)}
+.rvi{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}.rvi img{width:64px;height:64px;object-fit:cover;border-radius:10px;cursor:zoom-in}.lbx{position:fixed;inset:0;background:rgba(40,28,20,.88);display:grid;place-items:center;z-index:99;padding:14px}.lbx img{max-width:100%;max-height:90vh;border-radius:12px}
+.rvp{position:relative;display:inline-block;margin:6px 6px 0 0}.rvp img{width:64px;height:64px;object-fit:cover;border-radius:10px}.rvp button{position:absolute;top:-6px;inset-inline-end:-6px;width:20px;height:20px;border-radius:99px;border:0;background:#7a3b2e;color:#fff;cursor:pointer}.terms{display:flex;gap:8px;align-items:flex-start;margin:12px 0;font-size:.9rem}.terms input{margin-top:4px;width:auto}
+img{max-width:100%}body{overflow-x:hidden}
+.swb.soldv{opacity:.4;position:relative}.swb.soldv:after{content:"";position:absolute;inset:50% -2px auto -2px;height:2px;background:#5a4a42;transform:rotate(-45deg)}.chb.soldv{opacity:.55;text-decoration:line-through}
 </style>
 </head>
 <body>
@@ -222,13 +229,20 @@ const optText = o => Object.entries(o || {}).map(([k, v]) => esc(k) + ': ' + esc
 /* ---------- المنتجات ---------- */
 const tiers = p => { if (p.wholesale_price == null) return ''; const m = p.wholesale_min_qty || S.wholesale_min_qty; return `<div class="tiers"><span>1 – ${m - 1} قطع<b>${money(p.price)}</b></span><span class="hot">من ${m} قطعة<b>${money(p.wholesale_price)}</b></span></div>`; };
 const rateTag = p => RT[p.id] ? `<div class="rate">${ic('star')} ${RT[p.id].avg} <span>(${RT[p.id].count})</span></div>` : '';
-const soldOut = p => p.stock_qty != null && p.stock_qty <= 0, maxQ = p => p.stock_qty != null ? Math.max(0, p.stock_qty) : 1000;
-const stockBdg = p => soldOut(p) ? '<span class="sold">نفدت الكمية</span>' : p.stock_qty != null && p.stock_qty <= 5 ? `<span class="sold left">متبقي ${p.stock_qty}</span>` : '';
-const addBtn = (p, c) => soldOut(p) ? `<button class="btn ${c}" disabled>نفدت الكمية</button>` : `<button class="btn ${c}" onclick="addCart('${p.id}')">${ic('shopping-bag')} إضافة للسلة</button>`;
+let RS = {};
+const rsRows = p => (p && p.track_stock && RS[p.id]) || [], tracked = p => !!(p && p.track_stock);
+const rsMatch = (r, o) => { const vs = Object.values(o || {}); return (!r.color || vs.includes(r.color)) && (!r.size || vs.includes(r.size)); };
+const availOf = (p, o) => tracked(p) ? rsRows(p).filter(r => rsMatch(r, o)).reduce((t, r) => t + (r.qty || 0), 0) : 1000;
+const totalQty = p => rsRows(p).reduce((t, r) => t + (r.qty || 0), 0);
+const soldOut = p => tracked(p) && totalQty(p) <= 0;
+const comboOpts = p => { const o = {}; (p.options || []).forEach((g, gi) => { const vs = g.values.filter(v => v.available !== false); if (vs.length) o[g.name] = vs[Math.min(psel[gi] || 0, vs.length - 1)].label; }); return o; };
+const usedOf = (p, o) => cart.filter(c => c.pid === p.id && JSON.stringify(c.opts) === JSON.stringify(o)).reduce((t, c) => t + c.qty, 0);
+const stockBdg = p => { if (!tracked(p)) return ''; const t = totalQty(p); return t <= 0 ? '<span class="sold">نفدت الكمية</span>' : t <= 5 ? `<span class="sold left">متبقي ${t}</span>` : ''; };
+const addBtn = (p, c) => shopClosed() ? `<button class="btn ${c}" disabled>المتجر مغلق مؤقتًا</button>` : (tracked(p) && availOf(p, comboOpts(p)) <= 0) ? `<button class="btn ${c}" disabled>${soldOut(p) ? 'نفدت الكمية' : 'هذا الخيار غير متوفر حاليًا'}</button>` : `<button class="btn ${c}" onclick="addCart('${p.id}')">${ic('shopping-bag')} إضافة للسلة</button>`;
 function card(p) {
   const pcs = O.filter(o => o.kind === 'percent' && (!o.applies_to_product || o.applies_to_product === p.id)).map(o => Number(o.value)), cn = (C.find(c => c.id === p.category_id) || {}).name;
   const g0 = (p.options || []).find(g => g.type === 'color' || g.values.some(v => v.hex)), dots = g0 ? g0.values.filter(v => v.available !== false && v.hex).slice(0, 6).map(v => `<i class="dot" style="background:${v.hex}" title="${esc(v.label)}"></i>`).join('') : '';
-  return `<a class="pc ${soldOut(p) ? 'soldout' : ''}" href="#p-${p.id}"><div class="pimg" style="${p.image_path ? `background-image:url('${imgUrl(p.image_path)}')` : ''}">${p.image_path ? '' : ic('image')}${stockBdg(p)}${pcs.length ? `<span class="bdg">خصم ${Math.max(...pcs)}%</span>` : ''}</div>
+  return `<a class="pc ${soldOut(p) ? 'soldout' : ''}" href="#p-${p.id}"><div class="pimg" ${p.image_path ? `data-bg="${imgUrl(thumbOf(p.image_path))}" data-bg2="${imgUrl(p.image_path)}"` : ''}>${p.image_path ? '' : ic('image')}${stockBdg(p)}${pcs.length ? `<span class="bdg">خصم ${Math.max(...pcs)}%</span>` : ''}</div>
   <div class="pb"><div class="pn">${esc(p.name)}</div>${rateTag(p)}${cn ? `<div class="sub">${esc(cn)}</div>` : ''}<div class="prow"><b class="price">${money(p.price)}</b><span class="dots">${dots}</span></div>${p.wholesale_price != null ? `<div class="sub">جملة من ${p.wholesale_min_qty || S.wholesale_min_qty} قطع: ${money(p.wholesale_price)}</div>` : ''}</div></a>`;
 }
 function lv(id) {
@@ -237,7 +251,7 @@ function lv(id) {
   const bt = $('#bb_total'); if (bt) bt.textContent = money(tot);
 }
 function stp(id, d) { const i = $('#q_' + id); i.value = Math.max(1, Math.min(1000, (parseInt(i.value) || 1) + d)); lv(id); }
-function pick(gi, vi) { psel[gi] = vi; gimg = ''; route(true); }
+function pick(gi, vi) { const p = P.find(q => q.id === curP), old = p && selImg(p); psel[gi] = vi; gimg = ''; route(true); fadeFrom(old); }
 
 const ICONS = {
 'plus':'<path d="M5 12h14"/><path d="M12 5v14"/>','minus':'<path d="M5 12h14"/>','x':'<path d="M18 6 6 18"/><path d="m6 6 12 12"/>','check':'<path d="M20 6 9 17l-5-5"/>',
@@ -309,10 +323,11 @@ function cartBar() {
 function addCart(id) {
   const p = P.find(x => x.id === id), q = Math.max(1, parseInt($('#q_' + id)?.value) || pq || 1), opts = {};
   (p.options || []).forEach((g, gi) => { const vs = g.values.filter(v => v.available !== false); if (vs.length) opts[g.name] = vs[Math.min(psel[gi] || 0, vs.length - 1)].label; });
-  if (soldOut(p)) return toast('نفدت الكمية من هذا المنتج');
-  const k = JSON.stringify(opts), ex = cart.find(c => c.pid === id && JSON.stringify(c.opts) === k), inCart = cart.filter(c => c.pid === id).reduce((t, c) => t + c.qty, 0), mx = maxQ(p);
-  if (inCart + q > mx) { if (inCart >= mx) return toast('وصلت للكمية المتاحة (' + mx + ')'); toast('الكمية المتاحة ' + mx + ' فقط، عدّلناها لك'); }
-  const qq = Math.min(q, mx - inCart);
+  if (shopClosed()) return toast('المتجر مغلق مؤقتًا');
+  const k = JSON.stringify(opts), ex = cart.find(c => c.pid === id && JSON.stringify(c.opts) === k), av = availOf(p, opts), used = usedOf(p, opts);
+  if (tracked(p) && av <= 0) return toast('نفدت الكمية من هذا الخيار');
+  if (used + q > av) { if (used >= av) return toast('وصلت للكمية المتاحة (' + av + ')'); toast('الكمية المتاحة ' + av + ' فقط، عدّلناها لك'); }
+  const qq = Math.min(q, av - used);
   if (ex) ex.qty = Math.min(1000, ex.qty + qq); else cart.push({ pid: id, qty: qq, opts });
   saveCart(); toast('أضيف إلى السلة');
 }
@@ -341,13 +356,13 @@ const R = {
     const p = P.find(x => x.id === id); if (!p) return `<div class="card center" style="padding:36px 16px"><h3>هذا المنتج غير متاح</h3><a class="btn" style="display:inline-block;margin-top:12px" href="#products">تصفح المنتجات</a></div>`;
     const cat = C.find(c => c.id === p.category_id), rel = P.filter(x => x.id !== p.id && p.category_id && x.category_id === p.category_id).slice(0, 4);
     const ogs = (p.options || []).map((g, gi) => { const vs = g.values.filter(v => v.available !== false); if (!vs.length) return ''; const si = Math.min(psel[gi] || 0, vs.length - 1), col = g.type === 'color' || vs.some(v => v.hex || mixOf(v).length);
-      return `<div class="og"><div class="olab">${esc(g.name)}: <b>${esc(vs[si].label)}</b></div><div class="${col ? 'sws' : 'chs'}">${vs.map((v, vi) => col ? `<button class="swb ${vi === si ? 'on' : ''}" style="--c:${swBg(v)}" onclick="pick(${gi},${vi})" aria-label="${esc(v.label)}" title="${esc(v.label)}"></button>` : `<button class="chb ${vi === si ? 'on' : ''}" onclick="pick(${gi},${vi})">${esc(v.label)}</button>`).join('')}</div></div>`; }).join('');
+      return `<div class="og"><div class="olab">${esc(g.name)}: <b>${esc(vs[si].label)}</b></div><div class="${col ? 'sws' : 'chs'}">${vs.map((v, vi) => { const sv = tracked(p) && availOf(p, { ...comboOpts(p), [g.name]: v.label }) <= 0; return col ? `<button class="swb ${vi === si ? 'on' : ''} ${sv ? 'soldv' : ''}" style="--c:${swBg(v)}" onclick="pick(${gi},${vi})" aria-label="${esc(v.label)}" title="${esc(v.label)}${sv ? ' (نفدت)' : ''}"></button>` : `<button class="chb ${vi === si ? 'on' : ''} ${sv ? 'soldv' : ''}" onclick="pick(${gi},${vi})">${esc(v.label)}${sv ? ' · نفدت' : ''}</button>`; }).join('')}</div></div>`; }).join('');
     return `<nav class="crumb"><a href="#home">الرئيسية</a>${ic('chevron-left')}<a href="#products">المنتجات</a>${cat ? ic('chevron-left') + `<a href="#products" onclick="pc='${cat.id}'">${esc(cat.name)}</a>` : ''}${ic('chevron-left')}<span>${esc(p.name)}</span></nav>
-    <div class="pdp"><div class="pg">${(() => { const cur = selImg(p), im = pImgs(p); return `<div class="pimg big" style="${cur ? `background-image:url('${imgUrl(cur)}')` : ''}">${cur ? '' : ic('image')}</div>${im.length > 1 ? `<div class="thumbs">${im.map(x => `<button class="th ${x === cur ? 'on' : ''}" style="background-image:url('${imgUrl(x)}')" onclick="gimg='${x}';route(true)" aria-label="صورة"></button>`).join('')}</div>` : ''}`; })()}</div>
+    <div class="pdp"><div class="pg">${(() => { const cur = selImg(p), im = pImgs(p); return `<div class="pimg big" style="${cur ? `background-image:url('${imgUrl(cur)}')` : ''}">${cur ? '' : ic('image')}</div>${im.length > 1 ? `<div class="thumbs">${im.map(x => `<button class="th ${x === cur ? 'on' : ''}" style="background-image:url('${imgUrl(x)}')" onclick="gSet('${x}')" aria-label="صورة"></button>`).join('')}</div>` : ''}`; })()}</div>
     <div class="pi"><h1>${esc(p.name)}</h1><div id="prs">${rateTag(p)}</div>${cat ? `<div class="sub">${esc(cat.name)}</div>` : ''}<div class="pprice" id="lv_${p.id}"></div>${tiers(p)}
     ${p.description ? `<p class="pdesc">${esc(p.description)}</p>` : ''}${ogs}
     <div class="og"><div class="olab">الكمية</div><div class="stp"><button onclick="stp('${p.id}',-1)" aria-label="إنقاص">${ic('minus')}</button><input type="number" min="1" max="1000" value="${pq}" id="q_${p.id}" oninput="lv('${p.id}')"><button onclick="stp('${p.id}',1)" aria-label="زيادة">${ic('plus')}</button></div></div>
-    ${p.stock_qty != null && p.stock_qty > 0 && p.stock_qty <= 5 ? `<div class="sub" style="margin-bottom:6px">متبقي ${p.stock_qty} فقط</div>` : ''}${addBtn(p, 'big')}
+    ${(() => { if (!tracked(p)) return ''; const a = availOf(p, comboOpts(p)); return a <= 0 ? '<div class="sub" style="margin-bottom:6px;color:#b3261e">هذا الخيار نفدت كميته حاليًا، جرّب لونًا أو حجمًا آخر.</div>' : a <= 5 ? `<div class="sub" style="margin-bottom:6px">متبقي ${a} فقط من هذا الخيار</div>` : '<div class="sub" style="margin-bottom:6px">متوفر جاهزًا</div>'; })()}${addBtn(p, 'big')}
     <ul class="info"><li>${ic('heart')} صُنع يدويًا بعناية</li><li>${ic('map-pin')} الاستلام من أحد موقعين في مكة المكرمة</li><li>${ic('wallet')} الدفع نقدًا عند الاستلام</li><li>${ic('message-circle')} تأكيد الطلب عبر واتساب</li></ul></div></div>
     <h2>تقييمات العملاء</h2><div id="prv"><div class="skel" style="height:90px"></div></div>
     ${rel.length ? `<h2>منتجات مشابهة</h2><div class="pgrid">${rel.map(card).join('')}</div>` : ''}
@@ -364,7 +379,7 @@ const R = {
       ${c.gifts.map(g => `<div class="cl"><div class="pimg">${ic('gift')}</div><div class="cb"><div class="ctop"><b>${esc(g.name)}</b><b class="lt">مجانًا</b></div><div class="sub">هدية مجانية × ${g.q}</div></div></div>`).join('')}</div>
       <div class="row" style="justify-content:space-between"><a class="lnk g" href="#products">${ic('arrow-right')} متابعة التسوق</a><button class="lnk" onclick="clearCart()">${ic('trash-2')} تفريغ السلة</button></div></div>
       <aside class="card sumc"><h3>ملخص الطلب</h3><div class="tot"><span>المجموع</span><span>${money(c.sub)}</span></div>${c.fx ? `<div class="tot"><span>خصم العرض</span><span>− ${money(c.fx)}</span></div>` : ''}<div class="tot big"><span>الإجمالي</span><span>${money(c.total)}</span></div>
-      <div class="sub" style="margin:8px 0 14px">السعر النهائي يؤكَّد عند إتمام الطلب. الدفع نقدًا عند الاستلام فقط، والاستلام من أحد موقعينا في مكة المكرمة.</div><a class="btn big" style="display:block;text-align:center" href="#checkout">متابعة الطلب</a></aside></div>`;
+      <div class="sub" style="margin:8px 0 14px">السعر النهائي يؤكَّد عند إتمام الطلب. الدفع نقدًا عند الاستلام فقط، والاستلام من أحد موقعينا في مكة المكرمة.</div><div class="sub" style="margin-bottom:10px;font-size:.8rem">سياسة الاسترجاع: غير قابل للاسترجاع بعد فتح المنتج إلا في حال وجود عيب فيه.</div><a class="btn big" style="display:block;text-align:center" href="#checkout">متابعة الطلب</a></aside></div>`;
   },
   checkout() {
     const c = calc(); if (!c.lines.length) { location.hash = '#cart'; return ''; }
@@ -373,10 +388,11 @@ const R = {
     <label>رقم الجوال (واتساب) <b class="rq">*</b></label><input id="f_p" type="tel" inputmode="tel" dir="ltr" style="text-align:right" autocomplete="tel" onblur="fv('p')"><div class="hint">نحتاج رقمك لتأكيد الطلب عبر واتساب ولتتبع طلبك.</div><div class="fe" id="e_p"></div>
     <label>مكان الاستلام <b class="rq">*</b></label>${L.some(l => l.lat != null && l.lng != null) ? `<button type="button" class="btn soft near" onclick="findNear()">${ic('navigation')} حدّد الموقع الأقرب لي</button>` : ''}<div id="locs">${locCards()}</div>
     <div class="dis" style="margin-top:12px">${ic('wallet')} الدفع نقدًا عند الاستلام فقط · الاستلام من أحد موقعينا في مكة المكرمة</div>
-    <label>ملاحظات (اختياري)</label><textarea id="f_t" rows="2" maxlength="500"></textarea></div>
+    <label>ملاحظات (اختياري)</label><textarea id="f_t" rows="2" maxlength="500"></textarea>
+    <label class="terms"><input type="checkbox" id="f_terms"><span>أقرّ بأن المنتج غير قابل للاسترجاع بعد فتحه إلا في حال وجود عيب فيه</span></label></div>
     <details class="card sum"><summary><span>ملخص الطلب (${c.lines.length + c.gifts.length} أصناف)</span><b>${money(c.total)}</b></summary>${c.lines.map(l => `<div class="tot"><span>${esc(l.p.name)} × ${l.q}<div class="sub">${optText(l.opts)}</div></span><span>${money(l.t)}</span></div>`).join('')}${c.gifts.map(g => `<div class="tot"><span>${esc(g.name)} × ${g.q} (هدية)</span><span>مجانًا</span></div>`).join('')}${c.fx ? `<div class="tot"><span>خصم العرض</span><span>− ${money(c.fx)}</span></div>` : ''}</details>
     <div class="soft-note">بعد إرسال الطلب يتواصل معك حساب بيتالي عبر واتساب لتأكيد طلبك، ثم نتفق معك على الوقت وتفاصيل الاستلام. احتفظ بالفاتورة من فضلك.</div>
-    <button class="btn" style="width:100%" id="sendbtn" onclick="submit()">إرسال الطلب · ${money(c.total)}</button><div class="err" id="err"></div>`;
+    <button class="btn" style="width:100%" id="sendbtn" ${shopClosed() ? 'disabled' : ''} onclick="submit()">إرسال الطلب · ${money(c.total)}</button><div class="err" id="err"></div>`;
   },
   invoice() { if (!last) { location.hash = '#track'; return ''; }
     return `<div class="soft-note center">${ic('check-circle-2')} تم استلام طلبك! يرجى حفظ الفاتورة فستُطلب لتأكيد الطلب.</div>${inv(last)}${saveBtns()}${acctBox()}
@@ -438,18 +454,18 @@ function findNear() {
 }
 
 /* ---------- الإجراءات ---------- */
-function capQ(i, q) { const p = P.find(x => x.id === cart[i].pid), others = cart.reduce((t, c, k) => t + (k !== i && c.pid === cart[i].pid ? c.qty : 0), 0), mx = p ? Math.max(1, maxQ(p) - others) : 1000; if (q > mx) toast('الكمية المتاحة ' + (mx + others) + ' فقط'); return Math.max(1, Math.min(1000, mx, q)); }
+function capQ(i, q) { const l = cart[i], p = P.find(x => x.id === l.pid), others = cart.reduce((t, c, k) => t + (k !== i && c.pid === l.pid && JSON.stringify(c.opts) === JSON.stringify(l.opts) ? c.qty : 0), 0), mx = p ? Math.max(1, availOf(p, l.opts) - others) : 1000; if (q > mx) toast('الكمية المتاحة ' + (mx + others) + ' فقط'); return Math.max(1, Math.min(1000, mx, q)); }
 function chg(i, d) { cart[i].qty = capQ(i, cart[i].qty + d); saveCart(); route(true); }
 function setQ(i, v) { cart[i].qty = capQ(i, parseInt(v) || 1); saveCart(); route(true); }
 function toastU(msg, fn) { undoFn = fn; const e = $('#toast'); e.innerHTML = esc(msg) + '<button onclick="doUndo()">تراجع</button>'; e.className = 'show act'; clearTimeout(e._t); e._t = setTimeout(() => { e.className = ''; undoFn = null; }, 6000); }
 function doUndo() { if (undoFn) { undoFn(); undoFn = null; } $('#toast').className = ''; }
 function rm(i) { const it = cart.splice(i, 1)[0]; saveCart(); route(true); toastU('تم حذف المنتج من السلة', () => { cart.splice(i, 0, it); saveCart(); route(true); }); }
 function clearCart() { const old = cart.slice(); cart = []; saveCart(); route(true); toastU('تم تفريغ السلة', () => { cart = old; saveCart(); route(true); }); }
-const MSG = { invalid_name: 'اكتب اسمك من فضلك.', invalid_phone: 'رقم التواصل غير صحيح.', invalid_location: 'اختر مكان استلام متاحًا.', product_unavailable: 'أحد المنتجات لم يعد متاحًا، راجع السلة.', invalid_qty: 'الكمية غير صحيحة.', insufficient_stock: 'الكمية المتاحة من أحد المنتجات لا تكفي، راجع السلة وعدّلها.' };
+const MSG = { invalid_name: 'اكتب اسمك من فضلك.', invalid_phone: 'رقم التواصل غير صحيح.', invalid_location: 'اختر مكان استلام متاحًا.', product_unavailable: 'أحد المنتجات لم يعد متاحًا، راجع السلة.', invalid_qty: 'الكمية غير صحيحة.', shop_closed: 'المتجر مغلق مؤقتًا، نعتذر عن الإزعاج.', insufficient_stock: 'الكمية المتاحة من أحد المنتجات لا تكفي، راجع السلة وعدّلها.' };
 const errMsg = e => { const k = Object.keys(MSG).find(k => (e.message || '').includes(k)); return k ? MSG[k] : 'تعذّر إتمام العملية، حاول مرة أخرى.'; };
 function fv(k) { const el = $('#f_' + k), e = $('#e_' + k), v = el.value.trim(); let m = ''; if (k === 'n' && v.length < 2) m = 'اكتب اسمك من فضلك'; if (k === 'p' && v.replace(/\D/g, '').length < 8) m = 'رقم الجوال غير مكتمل'; e.textContent = m; el.classList.toggle('bad', !!m); return !m; }
 async function submit() {
-  if (busy) return; if (!selLoc) return $('#err').textContent = errMsg({ message: 'invalid_location' }); const okN = fv('n'), okP = fv('p'); if (!okN || !okP) return (okN ? $('#f_p') : $('#f_n')).focus(); const n = $('#f_n').value.trim(), p = $('#f_p').value.trim();
+  if (busy) return; if (shopClosed()) return $('#err').textContent = 'المتجر مغلق مؤقتًا، نعتذر عن الإزعاج.'; if (!$('#f_terms')?.checked) return $('#err').textContent = 'يرجى الإقرار بسياسة الاسترجاع قبل إرسال الطلب.'; if (!selLoc) return $('#err').textContent = errMsg({ message: 'invalid_location' }); const okN = fv('n'), okP = fv('p'); if (!okN || !okP) return (okN ? $('#f_p') : $('#f_n')).focus(); const n = $('#f_n').value.trim(), p = $('#f_p').value.trim();
   busy = true; $('#sendbtn').disabled = true; $('#err').textContent = '';
   const { data, error } = await sb.rpc('create_order', { p_name: n, p_phone: p, p_location: selLoc, p_items: cart.map(c => ({ product_id: c.pid, qty: c.qty, options: c.opts })), p_notes: $('#f_t').value.trim() || null, p_is_wholesale: false });
   busy = false; if (error) { $('#sendbtn').disabled = false; return $('#err').textContent = errMsg(error); }
@@ -479,6 +495,40 @@ async function track() {
   rate = 0; $('#res').insertAdjacentHTML('beforeend', reviewBox(data)); icons();
 }
 
+/* ---------- حالة المتجر / الصور / المعرض ---------- */
+let SS = {};
+const shopClosed = () => !!SS.closed;
+function stateBar() {
+  let h = '';
+  try {
+    if (SS.closed) h = `<div class="sbar closed">${ic('alert-triangle')} المتجر مغلق مؤقتًا${SS.reason_public ? ' · ' + esc(SS.reason_public) : ''}</div>`;
+    else if (SS.launched === false) h = `<div class="sbar soon">سيتم إطلاق المتجر قريبًا ✨</div>`;
+    else if (SS.launched_at && Date.now() - new Date(SS.launched_at) < 7 * 864e5) { let seen = false; try { seen = !!localStorage.getItem('petali_launch_seen'); } catch (e) {} if (!seen) h = `<div class="sbar done">تم إطلاق متجر بيتالي 🎉<button onclick="try{localStorage.setItem('petali_launch_seen','1')}catch(e){}this.parentNode.remove()" aria-label="إغلاق">×</button></div>`; }
+  } catch (e) {}
+  let b = $('#sbar'); if (!b) { b = document.createElement('div'); b.id = 'sbar'; document.body.insertBefore(b, document.body.firstChild); } b.innerHTML = h; try { icons(); } catch (e) {}
+}
+const thumbOf = p => p ? p.replace(/([^\/]*)$/, 't_$1') : '';
+const rvUrl = p => sb.storage.from('review-images').getPublicUrl(p).data.publicUrl;
+const rvImgs = a => Array.isArray(a) && a.length ? `<div class="rvi">${a.map(x => `<img loading="lazy" decoding="async" src="${rvUrl(x)}" alt="صورة من العميل" onclick="lbox('${rvUrl(x)}')">`).join('')}</div>` : '';
+function lbox(u) { const m = document.createElement('div'); m.className = 'lbx'; m.onclick = () => m.remove(); m.innerHTML = `<img src="${u}" alt="">`; document.body.appendChild(m); }
+// تحميل كسول لصور البطاقات: المصغّرة أولًا ثم الأصلية إن لم توجد
+const io = 'IntersectionObserver' in window ? new IntersectionObserver(es => es.forEach(e => { if (!e.isIntersecting) return; io.unobserve(e.target); const el = e.target, t = el.dataset.bg, f = el.dataset.bg2, set = u => { el.style.backgroundImage = `url('${u}')`; }, i = new Image(); i.onload = () => set(t); i.onerror = () => set(f); i.src = t; }), { rootMargin: '300px' }) : null;
+function lazyBg() { document.querySelectorAll('.pimg[data-bg]:not([data-d])').forEach(el => { el.dataset.d = 1; if (io) io.observe(el); else el.style.backgroundImage = `url('${el.dataset.bg2}')`; }); }
+{ let tm2; new MutationObserver(() => { clearTimeout(tm2); tm2 = setTimeout(lazyBg, 40); }).observe(document.documentElement, { childList: true, subtree: true }); }
+// معرض الصور: انتقال ناعم
+function fadeFrom(old) { const m = document.querySelector('.pg .pimg.big'); if (!m || !old) return; const o = document.createElement('div'); o.className = 'gfade'; o.style.backgroundImage = `url('${imgUrl(old)}')`; m.appendChild(o); requestAnimationFrame(() => requestAnimationFrame(() => { o.style.opacity = 0; })); setTimeout(() => o.remove(), 450); }
+function gSet(x) { const p = P.find(q => q.id === curP); const old = p && selImg(p); gimg = x; route(true); fadeFrom(old); }
+function gPre() { const p = P.find(q => q.id === curP); if (p) pImgs(p).forEach(x => { new Image().src = imgUrl(x); }); }
+function gStep(d) { const p = P.find(q => q.id === curP); if (!p) return; const im = pImgs(p); if (im.length < 2) return; let i = im.indexOf(selImg(p)); i = (i + d + im.length) % im.length; gSet(im[i]); }
+{ let sx = null; document.addEventListener('touchstart', e => { sx = e.target.closest && e.target.closest('.pg .pimg.big') ? e.touches[0].clientX : null; }, { passive: true });
+  document.addEventListener('touchend', e => { if (sx == null) return; const dx = e.changedTouches[0].clientX - sx; sx = null; if (Math.abs(dx) > 45) gStep(dx < 0 ? 1 : -1); }, { passive: true }); }
+/* ---------- صور التقييم ---------- */
+let rvFiles = [];
+function compressImg(f) { return new Promise((res, rej) => { const i = new Image(), u = URL.createObjectURL(f); i.onload = () => { URL.revokeObjectURL(u); let w = i.width, h = i.height, s = Math.min(1, 1280 / Math.max(w, h)); w = Math.round(w * s); h = Math.round(h * s); const c = document.createElement('canvas'); c.width = w; c.height = h; c.getContext('2d').drawImage(i, 0, 0, w, h); let q = .85; const go = () => c.toBlob(b => { if (!b) return rej(); if (b.size > 1.5e6 && q > .5) { q -= .1; return go(); } res(b); }, 'image/jpeg', q); go(); }; i.onerror = () => rej(); i.src = u; }); }
+async function rvPick(inp) { const fs = [...inp.files]; inp.value = ''; for (const f of fs) { if (rvFiles.length >= 3) { toast('الحد الأقصى 3 صور'); break; } try { rvFiles.push(await compressImg(f)); } catch (e) { toast('تعذّر قراءة الصورة'); } } rvPrev(); }
+function rvPrev() { const e = $('#rv_p'); if (e) e.innerHTML = rvFiles.map((b, i) => `<div class="rvp"><img src="${URL.createObjectURL(b)}" alt=""><button type="button" onclick="rvRm(${i})" aria-label="حذف">×</button></div>`).join(''); }
+function rvRm(i) { rvFiles.splice(i, 1); rvPrev(); }
+
 /* ---------- حفظ الفاتورة ---------- */
 const saveBtns = () => `<div class="row" style="justify-content:center;margin:18px 0 10px"><button class="btn" onclick="saveInv('png')">${ic('image')} حفظ كصورة</button><button class="btn" onclick="saveInv('pdf')">${ic('file-text')} حفظ PDF</button></div>`;
 const dl = (b, n) => { const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = n; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); };
@@ -500,14 +550,17 @@ const closeModal = () => $('#mdl')?.remove();
 
 /* ---------- التقييمات ---------- */
 const stars = n => Array.from({ length: 5 }, (_, i) => `<span class="${i < n ? 'on' : ''}">${ic('star')}</span>`).join('');
-const revSec = () => RV.length ? `<h2>ماذا قالوا عنا</h2><div class="grid">${RV.map(r => `<div class="card scal"><div class="rs">${stars(r.rating)}</div><p>${esc(r.comment || '')}</p><div class="sub">— ${esc(r.first_name)}</div></div>`).join('')}</div>` : '';
-const reviewBox = d => d.review ? `<div class="card scal"><h3>تقييمك</h3><div class="rs">${stars(d.review.rating)}</div><p>${esc(d.review.comment || '')}</p><div class="sub">شكرًا لك</div></div>`
+const revSec = () => RV.length ? `<h2>ماذا قالوا عنا</h2><div class="grid">${RV.map(r => `<div class="card scal"><div class="rs">${stars(r.rating)}</div><p>${esc(r.comment || '')}</p>${rvImgs(r.images)}<div class="sub">— ${esc(r.first_name)}</div></div>`).join('')}</div>` : '';
+const reviewBox = d => d.review ? `<div class="card scal"><h3>تقييمك</h3><div class="rs">${stars(d.review.rating)}</div><p>${esc(d.review.comment || '')}</p>${rvImgs(d.review.images)}<div class="sub">شكرًا لك</div></div>`
   : d.can_review ? `<div class="card scal"><h3>كيف كانت تجربتك؟</h3><div class="stars">${[1, 2, 3, 4, 5].map(i => `<button onclick="setRate(${i})" data-s="${i}" aria-label="${i}">${ic('star')}</button>`).join('')}</div>
-  <textarea id="rv_c" rows="3" maxlength="1000" placeholder="اكتب رأيك (اختياري)" style="margin-top:8px"></textarea><button class="btn" style="width:100%;margin-top:10px" onclick="sendReview()">إرسال التقييم</button><div class="err" id="rv_e"></div></div>` : '';
+  <textarea id="rv_c" rows="3" maxlength="1000" placeholder="اكتب رأيك (اختياري)" style="margin-top:8px"></textarea><label class="btn soft sm" style="margin-top:8px;display:inline-flex;gap:6px;cursor:pointer">${ic('image')} أضف صورًا (حتى 3)<input type="file" accept="image/*" multiple hidden onchange="rvPick(this)"></label><div id="rv_p"></div><button class="btn" style="width:100%;margin-top:10px" onclick="sendReview()">إرسال التقييم</button><div class="err" id="rv_e"></div></div>` : '';
 function setRate(i) { rate = i; document.querySelectorAll('.stars button').forEach(b => b.classList.toggle('on', +b.dataset.s <= i)); }
 async function sendReview() {
   if (!rate) return $('#rv_e').textContent = 'اختر عدد النجوم أولًا.';
-  const { error } = await sb.rpc('submit_review', { p_order_no: $('#t_n').value, p_phone: $('#t_p').value, p_rating: rate, p_comment: $('#rv_c').value.trim() || null });
+  const on = $('#t_n').value, paths = []; try { for (const b of rvFiles) { const pth = 'rv/' + on.replace(/\W/g, '') + '-' + Math.random().toString(36).slice(2, 9) + '.jpg', u = await sb.storage.from('review-images').upload(pth, b, { contentType: 'image/jpeg' }); if (!u.error) paths.push(pth); } } catch (e) {}
+  let { error } = await sb.rpc('submit_review_v2', { p_order_no: on, p_phone: $('#t_p').value, p_rating: rate, p_comment: $('#rv_c').value.trim() || null, p_images: paths });
+  if (error && !(error.message || '').includes('already_reviewed')) ({ error } = await sb.rpc('submit_review', { p_order_no: on, p_phone: $('#t_p').value, p_rating: rate, p_comment: $('#rv_c').value.trim() || null }));
+  rvFiles = [];
   if (error) return $('#rv_e').textContent = (error.message || '').includes('already_reviewed') ? 'سبق أن قيّمت هذا الطلب، شكرًا لك.' : 'تعذّر إرسال التقييم، حاول مرة أخرى.';
   toast('شكرًا لتقييمك'); track();
 }
@@ -571,8 +624,8 @@ async function sendRate() {
 async function loadPR(id) {
   let d = PRC[id]; if (!d) { const r = await sb.rpc('get_product_reviews', { p_product: id, p_limit: 20 }); d = r.error ? null : r.data; if (d) PRC[id] = d; }
   const el = $('#prv'), sm = $('#prs'); if (!el || curP !== id) return;
-  if (d && d.count) { if (sm) sm.innerHTML = `<div class="rate">${ic('star')} ${d.avg} <span>(${d.count} تقييم)</span></div>`; el.innerHTML = `<div class="grid">${d.items.map(r => `<div class="card"><div class="rs">${stars(r.rating)}</div><p>${esc(r.comment || '')}</p><div class="sub">— ${esc(r.first_name)}</div></div>`).join('')}</div>`; }
-  else el.innerHTML = '<div class="card center sub">لا توجد تقييمات لهذا المنتج بعد.</div>';
+  if (d && d.count) { if (sm) sm.innerHTML = `<div class="rate">${ic('star')} ${d.avg} <span>(${d.count} تقييم)</span></div>`; el.innerHTML = `<div class="grid">${d.items.map(r => `<div class="card"><div class="rs">${stars(r.rating)}</div><p>${esc(r.comment || '')}</p>${rvImgs(r.images)}<div class="sub">— ${esc(r.first_name)}</div></div>`).join('')}</div>`; }
+  else el.innerHTML = '<div class="card center sub">لا توجد تقييمات لهذا المنتج بعد. يمكن لمن استلم طلبه تقييمه من حسابه.</div>';
 }
 
 /* ---------- التشغيل ---------- */
@@ -581,18 +634,20 @@ function route(keep) {
   $('#view').innerHTML = R[v](a); document.querySelectorAll('#nav a,.hact a').forEach(x => x.classList.toggle('on', x.dataset.v === (v === 'product' ? 'products' : v))); if (!keep) scrollTo(0, 0); closeModal(); document.querySelectorAll('[id^=lv_]').forEach(e => lv(e.id.slice(3))); icons(); cartBar();
   if (v === 'invoice' && fresh) { fresh = false; modal(); }
   if (v === 'checkout') { if (!L.some(l => l.id === selLoc)) selLoc = L[0]?.id || ''; const e = $('#locs'); if (e) e.innerHTML = locCards(); if (me) { $('#f_n').value = me.name; $('#f_p').value = me.phone; } }
-  if (v === 'product') loadPR(a);
+  if (v === 'product') { loadPR(a); gPre(); }
   if (v === 'account' && me) loadAcc();
 }
 addEventListener('hashchange', () => route());
 (async () => {
   $('#cartic').innerHTML = ic('shopping-bag'); $('#trkic').innerHTML = ic('package'); $('#accic').innerHTML = ic('user'); saveCart(); $('#view').innerHTML = '<div class="grid"><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>';
+  const rsP = sb.rpc('get_ready_stock').then(r => r.data || {}, () => ({}));
   const [p, o, l, s, rv, cat, cfg, rt, cn] = await Promise.all([sb.from('products').select('*').is('deleted_at', null).order('sort_order').order('created_at'), sb.from('offers').select('*').is('deleted_at', null), sb.from('pickup_locations').select('*').is('deleted_at', null).order('sort_order'), sb.rpc('get_public_settings'), sb.rpc('get_public_reviews', { p_limit: 12 }), sb.from('product_categories').select('*').order('sort_order'), sb.rpc('get_shop_config'), sb.rpc('get_rating_summary'), (async () => { let seen = false; try { seen = !!sessionStorage.getItem('petali_pv'); } catch (e) {} if (!seen) { try { const r = await sb.rpc('register_visit'); if (r.error) console.warn('register_visit:', r.error.message); else { try { sessionStorage.setItem('petali_pv', '1'); } catch (e) {} } } catch (e) { console.warn(e); } } return sb.rpc('get_shop_counters'); })()]);
   P = p.data || []; O = o.data || []; L = l.data || []; if (s.data) S = s.data; RV = rv.data || []; C = (cat && cat.data) || []; C = C.filter(c => P.some(x => x.category_id === c.id));
-  RT = rt.data || {}; const cf = cfg.data || {}; if (cf.theme) applyTheme(cf.theme); if (!S.home_category && cf.home_category) S.home_category = cf.home_category;
+  RT = rt.data || {}; const cf = cfg.data || {}; SS = cf.state || {}; stateBar(); if (cf.theme) applyTheme(cf.theme); if (!S.home_category && cf.home_category) S.home_category = cf.home_category;
   if (S.home_category) C.sort((a, b) => (b.id === S.home_category) - (a.id === S.home_category));
   drawCounters(cn && cn.data); await loadMe();
-  cart = cart.filter(c => { const p = P.find(x => x.id === c.pid); return p && !soldOut(p); }); cart.forEach(c => { const p = P.find(x => x.id === c.pid); if (c.qty > maxQ(p)) c.qty = maxQ(p); }); saveCart(); route();
+  try { RS = await rsP; } catch (e) { RS = {}; }
+  cart = cart.filter(c => { const p = P.find(x => x.id === c.pid); return p && (!tracked(p) || availOf(p, c.opts) > 0); }); cart.forEach(c => { const p = P.find(x => x.id === c.pid), a = availOf(p, c.opts); if (c.qty > a) c.qty = a; }); saveCart(); route();
 })();
 </script>
 </body>
