@@ -190,11 +190,11 @@ img{max-width:100%}body{overflow-x:hidden}
 <nav id="nav"><a href="#home" data-v="home">الرئيسية</a><a href="#products" data-v="products">المتجر</a></nav>
 <div class="hact"><a class="trk" href="#track" data-v="track"><span id="trkic"></span><b>تتبّع طلبي</b></a><a class="ib" href="#account" data-v="account" aria-label="حسابي"><span id="accic"></span></a><a class="ib cartbtn" href="#cart" aria-label="السلة"><span id="cartic"></span><i id="cc">0</i></a></div></header>
 <main id="view"></main>
-<footer><div id="cnt"></div><div class="stitch"></div><img src="petali-logo.png" alt="" onerror="this.remove()"><div class="sub">بيتالي · كروشيه بلمسة يدوية</div></footer>
+<footer><div id="cnt"></div><div class="stitch"></div><img src="petali-logo.png" alt="" onerror="this.remove()"><div class="sub" id="ftxt">بيتالي · كروشيه بلمسة يدوية</div></footer>
 <div id="toast"></div>
 <script>
 /* ضعي هنا الرابط والمفتاح العام (anon) فقط */
-const CFG = { url: 'https://jkcxbnfdhjtlzmjwglor.supabase.co', key: 'sb_publishable_hmMy7AFAoHvgxFiMHJ7U2w_f2Bm_L_T', logo: 'petali-logo.png' };
+const CFG = { url: 'https://hsxtaxwcdowrqptnfpld.supabase.co', key: 'sb_publishable_NorWIu10q6HfvOIIY94SiA_sAbGWuED', logo: 'petali-logo.png' };
 const sb = supabase.createClient(CFG.url, CFG.key);
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
@@ -336,14 +336,14 @@ function addCart(id) {
 const R = {
   home() {
     const fc = C.find(c => c.id === S.home_category), F = fc ? P.filter(p => p.category_id === fc.id) : P;
-    return `<section class="hero"><div><div class="sub">صُنع يدويًا بحب</div><h1>ربطات شعر كروشيه <span class="brand">ناعمة</span> بلمسة يدوية</h1>
-    <p style="margin:10px 0 16px">في بيتالي نصنع كل قطعة بالكروشيه بعناية وألوان هادئة، ونجهزها لك أو لمناسباتك وتوزيعاتك.</p><div class="row"><a class="btn" href="#products">تسوّق الآن</a><a class="btn soft" href="#track">تتبّع طلبي</a></div></div>
+    return `<section class="hero"><div><div class="sub">${T('home_kicker')}</div><h1>${Tt('home_title')}</h1>
+    <p style="margin:10px 0 16px">${T('home_text')}</p><div class="row"><a class="btn" href="#products">${T('home_btn1')}</a><a class="btn soft" href="#track">${T('home_btn2')}</a></div></div>
     <div class="arch"><div><img src="${CFG.logo}" alt="" onerror="this.remove()"><span>Petali · crochet</span></div></div></section>
-    <div class="trust"><div>${ic('heart')}صُنع يدويًا بعناية</div><div>${ic('map-pin')}استلام من مواقعنا</div><div>${ic('message-circle')}تأكيد عبر واتساب</div></div>
-    ${C.length ? `<h2>تسوّق حسب القسم</h2><div class="chipsrow">${C.map(c => `<button class="chip" onclick="pc='${c.id}';location.hash='#products'">${esc(c.name)}</button>`).join('')}</div>` : ''}
-    <div class="stitch"></div><div class="row" style="justify-content:space-between"><h2 style="margin-bottom:0">${fc ? esc(fc.name) : 'اختيارات بيتالي'}</h2><a class="lnk g" href="#products">عرض الكل ${ic('chevron-left')}</a></div>${F.length ? `<div class="pgrid">${F.slice(0, 8).map(card).join('')}</div>` : '<div class="card center sub">المنتجات قادمة قريبًا</div>'}
-    <h2>خطوات الطلب</h2><div class="steps"><div class="card scal"><b>1</b>اختر منتجاتك وألوانها وأضفها إلى السلة.</div><div class="card scal"><b>2</b>أكمل بياناتك واختر مكان الاستلام، وستحصل على رقم طلب وفاتورة.</div><div class="card scal"><b>3</b>نتواصل معك عبر واتساب لتأكيد الطلب، ثم نبلغك عند جاهزيته.</div></div>
-    ${revSec()}<div class="card scal dashc"><h3>${ic('layers')} كلما زادت الكمية قلّ سعر القطعة</h3><p class="sub">تجد أسعار الكميات الكبيرة وتوزيعات المناسبات مباشرة في صفحة كل منتج، ويُطبَّق السعر تلقائيًا عند اختيار الكمية.</p></div>`;
+    ${lyOn('trust') ? `<div class="trust"><div>${ic('heart')}${T('trust1')}</div><div>${ic('map-pin')}${T('trust2')}</div><div>${ic('message-circle')}${T('trust3')}</div></div>` : ''}
+    ${C.length && lyOn('cats') ? `<h2>${T('cats_title')}</h2><div class="chipsrow">${C.map(c => `<button class="chip" onclick="pc='${c.id}';location.hash='#products'">${esc(c.name)}</button>`).join('')}</div>` : ''}
+    <div class="stitch"></div><div class="row" style="justify-content:space-between"><h2 style="margin-bottom:0">${fc ? esc(fc.name) : T('featured_title')}</h2><a class="lnk g" href="#products">عرض الكل ${ic('chevron-left')}</a></div>${F.length ? `<div class="pgrid">${F.slice(0, 8).map(card).join('')}</div>` : '<div class="card center sub">المنتجات قادمة قريبًا</div>'}
+    ${lyOn('steps') ? `<h2>${T('steps_title')}</h2><div class="steps"><div class="card scal"><b>1</b>${T('step1')}</div><div class="card scal"><b>2</b>${T('step2')}</div><div class="card scal"><b>3</b>${T('step3')}</div></div>` : ''}
+    ${lyOn('reviews') ? revSec() : ''}${lyOn('wh') ? `<div class="card scal dashc"><h3>${ic('layers')} ${T('wh_title')}</h3><p class="sub">${T('wh_text')}</p></div>` : ''}`;
   },
   products() {
     const f = P.filter(p => (pc === 'all' || p.category_id === pc) && (!ps || (p.name + ' ' + (p.description || '')).includes(ps)));
@@ -363,7 +363,7 @@ const R = {
     ${p.description ? `<p class="pdesc">${esc(p.description)}</p>` : ''}${ogs}
     <div class="og"><div class="olab">الكمية</div><div class="stp"><button onclick="stp('${p.id}',-1)" aria-label="إنقاص">${ic('minus')}</button><input type="number" min="1" max="1000" value="${pq}" id="q_${p.id}" oninput="lv('${p.id}')"><button onclick="stp('${p.id}',1)" aria-label="زيادة">${ic('plus')}</button></div></div>
     ${(() => { if (!tracked(p)) return ''; const a = availOf(p, comboOpts(p)); return a <= 0 ? '<div class="sub" style="margin-bottom:6px;color:#b3261e">هذا الخيار نفدت كميته حاليًا، جرّب لونًا أو حجمًا آخر.</div>' : a <= 5 ? `<div class="sub" style="margin-bottom:6px">متبقي ${a} فقط من هذا الخيار</div>` : '<div class="sub" style="margin-bottom:6px">متوفر جاهزًا</div>'; })()}${addBtn(p, 'big')}
-    <ul class="info"><li>${ic('heart')} صُنع يدويًا بعناية</li><li>${ic('map-pin')} الاستلام من أحد موقعين في مكة المكرمة</li><li>${ic('wallet')} الدفع نقدًا عند الاستلام</li><li>${ic('message-circle')} تأكيد الطلب عبر واتساب</li></ul></div></div>
+    <ul class="info"><li>${ic('heart')} ${T('info1')}</li><li>${ic('map-pin')} ${T('info2')}</li><li>${ic('wallet')} ${T('info3')}</li><li>${ic('message-circle')} ${T('info4')}</li></ul></div></div>
     <h2>تقييمات العملاء</h2><div id="prv"><div class="skel" style="height:90px"></div></div>
     ${rel.length ? `<h2>منتجات مشابهة</h2><div class="pgrid">${rel.map(card).join('')}</div>` : ''}
     <div class="buybar"><div><div class="sub">الإجمالي</div><b id="bb_total"></b></div>${addBtn(p, '')}</div>`;
@@ -379,7 +379,7 @@ const R = {
       ${c.gifts.map(g => `<div class="cl"><div class="pimg">${ic('gift')}</div><div class="cb"><div class="ctop"><b>${esc(g.name)}</b><b class="lt">مجانًا</b></div><div class="sub">هدية مجانية × ${g.q}</div></div></div>`).join('')}</div>
       <div class="row" style="justify-content:space-between"><a class="lnk g" href="#products">${ic('arrow-right')} متابعة التسوق</a><button class="lnk" onclick="clearCart()">${ic('trash-2')} تفريغ السلة</button></div></div>
       <aside class="card sumc"><h3>ملخص الطلب</h3><div class="tot"><span>المجموع</span><span>${money(c.sub)}</span></div>${c.fx ? `<div class="tot"><span>خصم العرض</span><span>− ${money(c.fx)}</span></div>` : ''}<div class="tot big"><span>الإجمالي</span><span>${money(c.total)}</span></div>
-      <div class="sub" style="margin:8px 0 14px">السعر النهائي يؤكَّد عند إتمام الطلب. الدفع نقدًا عند الاستلام فقط، والاستلام من أحد موقعينا في مكة المكرمة.</div><div class="sub" style="margin-bottom:10px;font-size:.8rem">سياسة الاسترجاع: غير قابل للاسترجاع بعد فتح المنتج إلا في حال وجود عيب فيه.</div><a class="btn big" style="display:block;text-align:center" href="#checkout">متابعة الطلب</a></aside></div>`;
+      <div class="sub" style="margin:8px 0 14px">${T('cart_note')}</div><div class="sub" style="margin-bottom:10px;font-size:.8rem">سياسة الاسترجاع: ${T('return_policy')}</div><a class="btn big" style="display:block;text-align:center" href="#checkout">متابعة الطلب</a></aside></div>`;
   },
   checkout() {
     const c = calc(); if (!c.lines.length) { location.hash = '#cart'; return ''; }
@@ -445,12 +445,18 @@ function pickLoc(id) { selLoc = id; const e = $('#locs'); if (e) e.innerHTML = l
 function findNear() {
   if (!navigator.geolocation) return toast('المتصفح لا يدعم تحديد الموقع');
   toast('جارٍ تحديد موقعك...');
-  navigator.geolocation.getCurrentPosition(pos => {
+  const ok = pos => {
     const { latitude: a, longitude: b } = pos.coords; dist = {}; let best = null;
     L.forEach(l => { if (l.lat != null && l.lng != null) { dist[l.id] = hav(a, b, Number(l.lat), Number(l.lng)); if (!best || dist[l.id] < dist[best]) best = l.id; } });
     if (!best) return toast('لا توجد إحداثيات للمواقع');
     nearId = best; selLoc = best; const e = $('#locs'); if (e) e.innerHTML = locCards(); toast('تم اختيار الموقع الأقرب لك');
-  }, () => toast('لم نستطع تحديد موقعك، اختر الموقع يدويًا'), { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 });
+  };
+  const fail = (e, retry) => {
+    if (e && e.code === 1) return toast('تم رفض إذن الموقع. على الآيفون: الإعدادات ← الخصوصية والأمان ← خدمات الموقع ← Safari ← اختر «أثناء استخدام التطبيق»، ثم أعد المحاولة. أو اختر الموقع يدويًا.');
+    if (retry) return navigator.geolocation.getCurrentPosition(ok, x => fail(x, false), { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
+    toast('لم نستطع تحديد موقعك، تأكد من تشغيل خدمات الموقع أو اختر الموقع يدويًا');
+  };
+  navigator.geolocation.getCurrentPosition(ok, x => fail(x, true), { enableHighAccuracy: false, timeout: 12000, maximumAge: 300000 });
 }
 
 /* ---------- الإجراءات ---------- */
@@ -496,14 +502,22 @@ async function track() {
 }
 
 /* ---------- حالة المتجر / الصور / المعرض ---------- */
+const TXD = {"home_kicker": "صُنع يدويًا بحب", "home_title": "ربطات شعر كروشيه *ناعمة* بلمسة يدوية", "home_text": "في بيتالي نصنع كل قطعة بالكروشيه بعناية وألوان هادئة، ونجهزها لك أو لمناسباتك وتوزيعاتك.", "home_btn1": "تسوّق الآن", "home_btn2": "تتبّع طلبي", "trust1": "صُنع يدويًا بعناية", "trust2": "استلام من مواقعنا", "trust3": "تأكيد عبر واتساب", "cats_title": "تسوّق حسب القسم", "featured_title": "اختيارات بيتالي", "steps_title": "خطوات الطلب", "step1": "اختر منتجاتك وألوانها وأضفها إلى السلة.", "step2": "أكمل بياناتك واختر مكان الاستلام، وستحصل على رقم طلب وفاتورة.", "step3": "نتواصل معك عبر واتساب لتأكيد الطلب، ثم نبلغك عند جاهزيته.", "wh_title": "كلما زادت الكمية قلّ سعر القطعة", "wh_text": "تجد أسعار الكميات الكبيرة وتوزيعات المناسبات مباشرة في صفحة كل منتج، ويُطبَّق السعر تلقائيًا عند اختيار الكمية.", "info1": "صُنع يدويًا بعناية", "info2": "الاستلام من أحد موقعين في مكة المكرمة", "info3": "الدفع نقدًا عند الاستلام", "info4": "تأكيد الطلب عبر واتساب", "cart_note": "السعر النهائي يؤكَّد عند إتمام الطلب. الدفع نقدًا عند الاستلام فقط، والاستلام من أحد موقعينا في مكة المكرمة.", "return_policy": "غير قابل للاسترجاع بعد فتح المنتج إلا في حال وجود عيب فيه.", "footer_text": "بيتالي · كروشيه بلمسة يدوية", "banner_soon": "سيتم إطلاق المتجر قريبًا ✨", "banner_launched": "تم إطلاق متجر بيتالي 🎉"};
+let TX = {}, LY = {}, SB = {};
+const T = k => esc((TX[k] && String(TX[k]).trim()) || TXD[k] || '');
+const Tt = k => { const v = T(k); return v.replace(/\*([^*]+)\*/g, '<span class="brand">$1</span>'); };
+const lyOn = k => LY[k] !== false;
 let SS = {};
 const shopClosed = () => !!SS.closed;
 function stateBar() {
   let h = '';
   try {
+    const hide = SB.mode === 'hide', show = SB.mode === 'show', exp = SB.until && Date.now() > new Date(SB.until + 'T23:59:59').getTime();
     if (SS.closed) h = `<div class="sbar closed">${ic('alert-triangle')} المتجر مغلق مؤقتًا${SS.reason_public ? ' · ' + esc(SS.reason_public) : ''}</div>`;
-    else if (SS.launched === false) h = `<div class="sbar soon">سيتم إطلاق المتجر قريبًا ✨</div>`;
-    else if (SS.launched_at && Date.now() - new Date(SS.launched_at) < 7 * 864e5) { let seen = false; try { seen = !!localStorage.getItem('petali_launch_seen'); } catch (e) {} if (!seen) h = `<div class="sbar done">تم إطلاق متجر بيتالي 🎉<button onclick="try{localStorage.setItem('petali_launch_seen','1')}catch(e){}this.parentNode.remove()" aria-label="إغلاق">×</button></div>`; }
+    else if (show && !exp) h = `<div class="sbar done">${SB.text && SB.text.trim() ? esc(SB.text) : T('banner_launched')}</div>`;
+    else if (hide || exp) h = '';
+    else if (SS.launched === false) h = `<div class="sbar soon">${T('banner_soon')}</div>`;
+    else if (SS.launched_at && Date.now() - new Date(SS.launched_at) < 7 * 864e5) { let seen = false; try { seen = !!localStorage.getItem('petali_launch_seen'); } catch (e) {} if (!seen) h = `<div class="sbar done">${T('banner_launched')}<button onclick="try{localStorage.setItem('petali_launch_seen','1')}catch(e){}this.parentNode.remove()" aria-label="إغلاق">×</button></div>`; }
   } catch (e) {}
   let b = $('#sbar'); if (!b) { b = document.createElement('div'); b.id = 'sbar'; document.body.insertBefore(b, document.body.firstChild); } b.innerHTML = h; try { icons(); } catch (e) {}
 }
@@ -643,7 +657,7 @@ addEventListener('hashchange', () => route());
   const rsP = sb.rpc('get_ready_stock').then(r => r.data || {}, () => ({}));
   const [p, o, l, s, rv, cat, cfg, rt, cn] = await Promise.all([sb.from('products').select('*').is('deleted_at', null).order('sort_order').order('created_at'), sb.from('offers').select('*').is('deleted_at', null), sb.from('pickup_locations').select('*').is('deleted_at', null).order('sort_order'), sb.rpc('get_public_settings'), sb.rpc('get_public_reviews', { p_limit: 12 }), sb.from('product_categories').select('*').order('sort_order'), sb.rpc('get_shop_config'), sb.rpc('get_rating_summary'), (async () => { let seen = false; try { seen = !!sessionStorage.getItem('petali_pv'); } catch (e) {} if (!seen) { try { const r = await sb.rpc('register_visit'); if (r.error) console.warn('register_visit:', r.error.message); else { try { sessionStorage.setItem('petali_pv', '1'); } catch (e) {} } } catch (e) { console.warn(e); } } return sb.rpc('get_shop_counters'); })()]);
   P = p.data || []; O = o.data || []; L = l.data || []; if (s.data) S = s.data; RV = rv.data || []; C = (cat && cat.data) || []; C = C.filter(c => P.some(x => x.category_id === c.id));
-  RT = rt.data || {}; const cf = cfg.data || {}; SS = cf.state || {}; stateBar(); if (cf.theme) applyTheme(cf.theme); if (!S.home_category && cf.home_category) S.home_category = cf.home_category;
+  RT = rt.data || {}; const cf = cfg.data || {}; SS = cf.state || {}; TX = cf.texts || {}; LY = cf.layout || {}; SB = cf.banner || {}; stateBar(); { const f = $('#ftxt'); if (f) f.textContent = (TX.footer_text || '').trim() || TXD.footer_text; } if (cf.theme) applyTheme(cf.theme); if (!S.home_category && cf.home_category) S.home_category = cf.home_category;
   if (S.home_category) C.sort((a, b) => (b.id === S.home_category) - (a.id === S.home_category));
   drawCounters(cn && cn.data); await loadMe();
   try { RS = await rsP; } catch (e) { RS = {}; }
