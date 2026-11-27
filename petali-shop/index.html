@@ -65,7 +65,7 @@ label{display:block;font-size:.88rem;color:var(--tx2);margin:10px 0 4px}
 .bar{height:8px;background:var(--mvl);border-radius:9px;overflow:hidden}.bar i{display:block;height:100%;background:var(--mv)}
 .err{color:#C9776B;min-height:1.3em;font-size:.9rem;margin-top:6px}
 #toast{position:fixed;bottom:24px;inset-inline:0;margin:auto;width:max-content;max-width:90%;background:var(--tx);color:#fff;padding:10px 18px;border-radius:14px;opacity:0;pointer-events:none;transition:.2s;z-index:9}#toast.show{opacity:1}
-footer{text-align:center;padding:10px 14px 40px}footer img{height:56px;opacity:.3;display:block;margin:0 auto 6px}
+footer{text-align:center;padding:10px 14px 40px}footer img{height:56px;opacity:.3;display:block;margin:0 auto 6px}.fwide{max-width:980px;margin:14px auto 0;display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:22px;text-align:start;background:var(--card);border:2px dashed var(--mvl);border-radius:24px;padding:22px 24px}.fwide h4{margin:0 0 8px;font-size:.95rem}.fwide a{display:block;padding:4px 0;color:inherit;opacity:.8;font-size:.9rem;text-decoration:none}.fwide a:hover{opacity:1;text-decoration:underline}.fwide .fb img{margin:0 0 8px}.fcopy{grid-column:1/-1;border-top:1px dashed var(--mvl);padding-top:10px;text-align:center;font-size:.8rem;opacity:.7}@media(max-width:700px){.fwide{grid-template-columns:1fr 1fr}.fwide .fb{grid-column:1/-1}}.pol{border-radius:16px}.pol h3{margin:0 0 6px}.pol p{margin:0;line-height:1.9;white-space:pre-line}.polbox{border:2px dashed var(--mvl);border-radius:16px;padding:12px;margin-top:12px;background:var(--card)}.polbox.ok{border-style:solid;border-color:#7aa383}.polscr{max-height:52vh;overflow:auto;text-align:start;border:1.5px solid var(--mvl);border-radius:14px;padding:12px;margin:10px 0}.polscr h3{margin:12px 0 4px;font-size:1rem}.polscr h3:first-child{margin-top:0}.polscr p{margin:0;line-height:1.9;white-space:pre-line;font-size:.92rem}.modal .box.wide{max-width:560px;width:100%}
 .invwrap{padding:14px;background:var(--bg)}
 .modal{position:fixed;inset:0;background:rgba(85,72,82,.45);display:grid;place-items:center;z-index:20;padding:16px}.modal .box{background:var(--card);border-radius:24px;border:2px dashed var(--mvl);padding:24px 22px;max-width:380px;text-align:center}
 .stars{display:flex;gap:2px;justify-content:center}.stars button{background:none;border:0;font-size:2rem;cursor:pointer;color:var(--mvl);line-height:1}.stars button.on{color:var(--mv)}.rs{color:var(--mv);letter-spacing:2px}
@@ -190,7 +190,7 @@ img{max-width:100%}body{overflow-x:hidden}
 <nav id="nav"><a href="#home" data-v="home">الرئيسية</a><a href="#products" data-v="products">المتجر</a></nav>
 <div class="hact"><a class="trk" href="#track" data-v="track"><span id="trkic"></span><b>تتبّع طلبي</b></a><a class="ib" href="#account" data-v="account" aria-label="حسابي"><span id="accic"></span></a><a class="ib cartbtn" href="#cart" aria-label="السلة"><span id="cartic"></span><i id="cc">0</i></a></div></header>
 <main id="view"></main>
-<footer><div id="cnt"></div><div class="stitch"></div><img src="petali-logo.png" alt="" onerror="this.remove()"><div class="sub" id="ftxt">بيتالي · كروشيه بلمسة يدوية</div></footer>
+<footer><div id="cnt"></div><div class="stitch"></div><div class="fwide" id="fwide"></div></footer>
 <div id="toast"></div>
 <script>
 /* ضعي هنا الرابط والمفتاح العام (anon) فقط */
@@ -389,7 +389,7 @@ const R = {
     <label>مكان الاستلام <b class="rq">*</b></label>${L.some(l => l.lat != null && l.lng != null) ? `<button type="button" class="btn soft near" onclick="findNear()">${ic('navigation')} حدّد الموقع الأقرب لي</button>` : ''}<div id="locs">${locCards()}</div>
     <div class="dis" style="margin-top:12px">${ic('wallet')} الدفع نقدًا عند الاستلام فقط · الاستلام من أحد موقعينا في مكة المكرمة</div>
     <label>ملاحظات (اختياري)</label><textarea id="f_t" rows="2" maxlength="500"></textarea>
-    <label class="terms"><input type="checkbox" id="f_terms"><span>أقرّ بأن المنتج غير قابل للاسترجاع بعد فتحه إلا في حال وجود عيب فيه</span></label></div>
+    ${polBox()}</div>
     <details class="card sum"><summary><span>ملخص الطلب (${c.lines.length + c.gifts.length} أصناف)</span><b>${money(c.total)}</b></summary>${c.lines.map(l => `<div class="tot"><span>${esc(l.p.name)} × ${l.q}<div class="sub">${optText(l.opts)}</div></span><span>${money(l.t)}</span></div>`).join('')}${c.gifts.map(g => `<div class="tot"><span>${esc(g.name)} × ${g.q} (هدية)</span><span>مجانًا</span></div>`).join('')}${c.fx ? `<div class="tot"><span>خصم العرض</span><span>− ${money(c.fx)}</span></div>` : ''}</details>
     <div class="soft-note">بعد إرسال الطلب يتواصل معك حساب بيتالي عبر واتساب لتأكيد طلبك، ثم نتفق معك على الوقت وتفاصيل الاستلام. احتفظ بالفاتورة من فضلك.</div>
     <button class="btn" style="width:100%" id="sendbtn" ${shopClosed() ? 'disabled' : ''} onclick="submit()">إرسال الطلب · ${money(c.total)}</button><div class="err" id="err"></div>`;
@@ -403,6 +403,9 @@ const R = {
     : `<div class="soft-note">لإنشاء حساب نحتاج رقم طلب سابق من نفس الجوال، تجده في الفاتورة. وإذا أرسلت طلبك للتو يمكنك إنشاء الحساب من صفحة الفاتورة مباشرة.</div><label>الاسم</label><input id="a_n" autocomplete="name"><label>رقم الجوال</label><input id="a_p" type="tel" inputmode="tel" dir="ltr" style="text-align:right"><label>رقم الطلب</label><input id="a_o" dir="ltr" style="text-align:right" placeholder="PT-0001"><label>كلمة المرور (6 أحرف على الأقل)</label><input id="a_w" type="password" autocomplete="new-password"><button class="btn" style="width:100%;margin-top:12px" onclick="doReg()">إنشاء الحساب</button>`}
     <div class="err" id="err"></div></div>`;
     return `<div class="row"><h1 class="grow">أهلًا ${esc(me.name)}</h1><button class="btn soft sm" onclick="logout()">${ic('log-out')} خروج</button></div><div class="sub">يمكنك تقييم المتجر والمنتجات بعد أن يصبح الطلب "مكتمل".</div><h2>طلباتي</h2><div id="aord"><div class="skel" style="height:140px"></div></div>`;
+  },
+  policies() {
+    return `<h1>السياسات والشروط</h1><div class="sub" style="margin-bottom:10px">نرجو قراءة سياساتنا قبل الطلب.</div>${polHtml('card')}`;
   },
   track() {
     return `<h1>تتبع طلبي</h1><div class="card scal"><label>رقم الطلب</label><input id="t_n" placeholder="PT-0001" dir="ltr" style="text-align:right"><label>رقم التواصل</label><input id="t_p" type="tel" dir="ltr" style="text-align:right">
@@ -471,9 +474,9 @@ const MSG = { invalid_name: 'اكتب اسمك من فضلك.', invalid_phone: '
 const errMsg = e => { const k = Object.keys(MSG).find(k => (e.message || '').includes(k)); return k ? MSG[k] : 'تعذّر إتمام العملية، حاول مرة أخرى.'; };
 function fv(k) { const el = $('#f_' + k), e = $('#e_' + k), v = el.value.trim(); let m = ''; if (k === 'n' && v.length < 2) m = 'اكتب اسمك من فضلك'; if (k === 'p' && v.replace(/\D/g, '').length < 8) m = 'رقم الجوال غير مكتمل'; e.textContent = m; el.classList.toggle('bad', !!m); return !m; }
 async function submit() {
-  if (busy) return; if (shopClosed()) return $('#err').textContent = 'المتجر مغلق مؤقتًا، نعتذر عن الإزعاج.'; if (!$('#f_terms')?.checked) return $('#err').textContent = 'يرجى الإقرار بسياسة الاسترجاع قبل إرسال الطلب.'; if (!selLoc) return $('#err').textContent = errMsg({ message: 'invalid_location' }); const okN = fv('n'), okP = fv('p'); if (!okN || !okP) return (okN ? $('#f_p') : $('#f_n')).focus(); const n = $('#f_n').value.trim(), p = $('#f_p').value.trim();
+  if (busy) return; if (shopClosed()) return $('#err').textContent = 'المتجر مغلق مؤقتًا، نعتذر عن الإزعاج.'; if (!polAt) return $('#err').textContent = 'يرجى قراءة السياسات والموافقة عليها قبل إرسال الطلب.'; if (!selLoc) return $('#err').textContent = errMsg({ message: 'invalid_location' }); const okN = fv('n'), okP = fv('p'); if (!okN || !okP) return (okN ? $('#f_p') : $('#f_n')).focus(); const n = $('#f_n').value.trim(), p = $('#f_p').value.trim();
   busy = true; $('#sendbtn').disabled = true; $('#err').textContent = '';
-  const { data, error } = await sb.rpc('create_order', { p_name: n, p_phone: p, p_location: selLoc, p_items: cart.map(c => ({ product_id: c.pid, qty: c.qty, options: c.opts })), p_notes: $('#f_t').value.trim() || null, p_is_wholesale: false });
+  const { data, error } = await sb.rpc('create_order', { p_name: n, p_phone: p, p_location: selLoc, p_items: cart.map(c => ({ product_id: c.pid, qty: c.qty, options: c.opts })), p_notes: $('#f_t').value.trim() || null, p_is_wholesale: false, p_policy_ok: true });
   busy = false; if (error) { $('#sendbtn').disabled = false; return $('#err').textContent = errMsg(error); }
   last = data; fresh = true; cart = []; saveCart(); location.hash = '#invoice';
 }
@@ -503,6 +506,34 @@ async function track() {
 
 /* ---------- حالة المتجر / الصور / المعرض ---------- */
 const TXD = {"home_kicker": "صُنع يدويًا بحب", "home_title": "ربطات شعر كروشيه *ناعمة* بلمسة يدوية", "home_text": "في بيتالي نصنع كل قطعة بالكروشيه بعناية وألوان هادئة، ونجهزها لك أو لمناسباتك وتوزيعاتك.", "home_btn1": "تسوّق الآن", "home_btn2": "تتبّع طلبي", "trust1": "صُنع يدويًا بعناية", "trust2": "استلام من مواقعنا", "trust3": "تأكيد عبر واتساب", "cats_title": "تسوّق حسب القسم", "featured_title": "اختيارات بيتالي", "steps_title": "خطوات الطلب", "step1": "اختر منتجاتك وألوانها وأضفها إلى السلة.", "step2": "أكمل بياناتك واختر مكان الاستلام، وستحصل على رقم طلب وفاتورة.", "step3": "نتواصل معك عبر واتساب لتأكيد الطلب، ثم نبلغك عند جاهزيته.", "wh_title": "كلما زادت الكمية قلّ سعر القطعة", "wh_text": "تجد أسعار الكميات الكبيرة وتوزيعات المناسبات مباشرة في صفحة كل منتج، ويُطبَّق السعر تلقائيًا عند اختيار الكمية.", "info1": "صُنع يدويًا بعناية", "info2": "الاستلام من أحد موقعين في مكة المكرمة", "info3": "الدفع نقدًا عند الاستلام", "info4": "تأكيد الطلب عبر واتساب", "cart_note": "السعر النهائي يؤكَّد عند إتمام الطلب. الدفع نقدًا عند الاستلام فقط، والاستلام من أحد موقعينا في مكة المكرمة.", "return_policy": "غير قابل للاسترجاع بعد فتح المنتج إلا في حال وجود عيب فيه.", "footer_text": "بيتالي · كروشيه بلمسة يدوية", "banner_soon": "سيتم إطلاق المتجر قريبًا ✨", "banner_launched": "تم إطلاق متجر بيتالي 🎉"};
+const PDEF = [
+  { t: 'سياسة الاسترجاع والاستبدال', b: 'منتجاتنا مصنوعة يدويًا حسب الطلب، وبالتالي غير قابلة للاسترجاع بعد فتحها أو استلامها إلا في حال وجود عيب فيها.\nفي حال وجود عيب، يرجى التواصل معنا عبر واتساب خلال 24 ساعة من الاستلام مع صورة توضح العيب، وسنعالج الأمر بالاستبدال أو الإصلاح.\nلا يشمل ذلك اختلاف الظل البسيط في الألوان بسبب الإضاءة أو الشاشات.' },
+  { t: 'الدفع والاستلام', b: 'الدفع نقدًا عند الاستلام فقط.\nالاستلام من أحد مواقعنا في مكة المكرمة، ونتفق معك عبر واتساب على الوقت والتفاصيل.\nقد نطلب عربونًا للطلبات الكبيرة أو طلبات الجملة، ويُحدد عند تأكيد الطلب.' },
+  { t: 'مدة التجهيز والتأكيد', b: 'يُعد الطلب مؤكدًا بعد تواصلنا معك عبر واتساب وتأكيدك له.\nمدة التجهيز تختلف حسب المنتج والكمية، ونبلغك بالموعد المتوقع عند التأكيد.\nنعتذر عن أي تأخير خارج عن إرادتنا، وسنبلغك به فور حدوثه.' },
+  { t: 'الإلغاء والتعديل', b: 'يمكن تعديل الطلب أو إلغاؤه قبل بدء التنفيذ فقط.\nبعد البدء في التنفيذ قد لا يمكن الإلغاء، وقد يُطلب تغطية تكلفة المواد المستخدمة.' },
+  { t: 'الخصوصية', b: 'نستخدم اسمك ورقم جوالك فقط لتأكيد طلبك وتتبعه والتواصل معك بخصوصه، ولا نشاركهما مع أي جهة أخرى.' }
+];
+let POL = PDEF, polAt = '';
+const polList = () => (Array.isArray(POL) && POL.length ? POL : PDEF).filter(x => x && (x.t || x.b));
+const polHtml = (cls) => polList().map(x => `<${cls === 'card' ? 'div class="card pol"' : 'div'}><h3>${esc(x.t || '')}</h3><p>${esc(x.b || '')}</p></${cls === 'card' ? 'div' : 'div'}>`).join('');
+function drawFooter() {
+  const f = $('#fwide'); if (!f) return;
+  const ft = (TX.footer_text || '').trim() || TXD.footer_text;
+  f.innerHTML = `<div class="fb"><img src="petali-logo.png" alt="" onerror="this.remove()"><div><b>${esc(ft)}</b></div><div class="sub" style="margin-top:6px">قطع كروشيه مصنوعة يدويًا بعناية. الدفع عند الاستلام والاستلام من مواقعنا في مكة المكرمة.</div></div>
+  <div><h4>السياسات</h4>${polList().map((x, i) => `<a href="#policies" onclick="polGo(${i})">${esc(x.t || '')}</a>`).join('')}</div>
+  <div><h4>روابط سريعة</h4><a href="#products">المنتجات</a><a href="#track">تتبّع طلبي</a><a href="#cart">السلة</a></div>
+  <div class="fcopy">© بيتالي · جميع الحقوق محفوظة</div>`;
+}
+let polIdx = -1; const polGo = i => { polIdx = i; };
+function openPol() {
+  const m = document.createElement('div'); m.className = 'modal'; m.id = 'polm';
+  m.innerHTML = `<div class="box wide"><h3>السياسات والشروط</h3><div class="sub">يرجى قراءتها كاملة. يُفعَّل زر الموافقة عند الوصول إلى نهايتها.</div><div class="polscr" id="polscr">${polHtml('')}</div><div class="sub" id="polhint">مرّر للأسفل حتى النهاية ⬇</div><div class="row" style="justify-content:center;margin-top:10px"><button class="btn" id="polok" disabled onclick="polAgree()">أقرأتُها وأوافق عليها</button><button class="btn soft" onclick="$('#polm').remove()">إغلاق</button></div></div>`;
+  document.body.appendChild(m);
+  const sc = $('#polscr'), chk = () => { if (sc.scrollTop + sc.clientHeight >= sc.scrollHeight - 8) { $('#polok').disabled = false; $('#polhint').textContent = 'تمت قراءة السياسات كاملة، يمكنك الموافقة الآن.'; } };
+  sc.addEventListener('scroll', chk); setTimeout(chk, 50);
+}
+function polAgree() { polAt = new Date().toISOString(); $('#polm')?.remove(); const b = $('#polbox'); if (b) b.outerHTML = polBox(); const e = $('#err'); if (e) e.textContent = ''; }
+const polBox = () => polAt ? `<div class="polbox ok" id="polbox">${ic('check-circle-2')} <b>قرأتَ السياسات ووافقتَ عليها</b><div class="sub">${new Date(polAt).toLocaleString('ar-SA', { dateStyle: 'medium', timeStyle: 'short' })} · <a href="#" onclick="event.preventDefault();openPol()">عرضها مرة أخرى</a></div></div>` : `<div class="polbox" id="polbox"><div style="margin-bottom:8px">قبل إرسال الطلب، يلزم قراءة سياسات المتجر كاملة والموافقة عليها.</div><button type="button" class="btn soft" onclick="openPol()">${ic('file-text')} قراءة السياسات والموافقة</button></div>`;
 let TX = {}, LY = {}, SB = {};
 const T = k => esc((TX[k] && String(TX[k]).trim()) || TXD[k] || '');
 const Tt = k => { const v = T(k); return v.replace(/\*([^*]+)\*/g, '<span class="brand">$1</span>'); };
@@ -653,11 +684,12 @@ function route(keep) {
 }
 addEventListener('hashchange', () => route());
 (async () => {
+  drawFooter();
   $('#cartic').innerHTML = ic('shopping-bag'); $('#trkic').innerHTML = ic('package'); $('#accic').innerHTML = ic('user'); saveCart(); $('#view').innerHTML = '<div class="grid"><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>';
   const rsP = sb.rpc('get_ready_stock').then(r => r.data || {}, () => ({}));
   const [p, o, l, s, rv, cat, cfg, rt, cn] = await Promise.all([sb.from('products').select('*').is('deleted_at', null).order('sort_order').order('created_at'), sb.from('offers').select('*').is('deleted_at', null), sb.from('pickup_locations').select('*').is('deleted_at', null).order('sort_order'), sb.rpc('get_public_settings'), sb.rpc('get_public_reviews', { p_limit: 12 }), sb.from('product_categories').select('*').order('sort_order'), sb.rpc('get_shop_config'), sb.rpc('get_rating_summary'), (async () => { let seen = false; try { seen = !!sessionStorage.getItem('petali_pv'); } catch (e) {} if (!seen) { try { const r = await sb.rpc('register_visit'); if (r.error) console.warn('register_visit:', r.error.message); else { try { sessionStorage.setItem('petali_pv', '1'); } catch (e) {} } } catch (e) { console.warn(e); } } return sb.rpc('get_shop_counters'); })()]);
   P = p.data || []; O = o.data || []; L = l.data || []; if (s.data) S = s.data; RV = rv.data || []; C = (cat && cat.data) || []; C = C.filter(c => P.some(x => x.category_id === c.id));
-  RT = rt.data || {}; const cf = cfg.data || {}; SS = cf.state || {}; TX = cf.texts || {}; LY = cf.layout || {}; SB = cf.banner || {}; stateBar(); { const f = $('#ftxt'); if (f) f.textContent = (TX.footer_text || '').trim() || TXD.footer_text; } if (cf.theme) applyTheme(cf.theme); if (!S.home_category && cf.home_category) S.home_category = cf.home_category;
+  RT = rt.data || {}; const cf = cfg.data || {}; SS = cf.state || {}; if (Array.isArray(cf.policies) && cf.policies.length) POL = cf.policies; TX = cf.texts || {}; LY = cf.layout || {}; SB = cf.banner || {}; stateBar(); drawFooter(); if (cf.theme) applyTheme(cf.theme); if (!S.home_category && cf.home_category) S.home_category = cf.home_category;
   if (S.home_category) C.sort((a, b) => (b.id === S.home_category) - (a.id === S.home_category));
   drawCounters(cn && cn.data); await loadMe();
   try { RS = await rsP; } catch (e) { RS = {}; }
